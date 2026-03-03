@@ -722,35 +722,16 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
                 lidar_bev=None,
                 radar_bev=None,
                 **kwargs):
-        """Forward function for `TransformerDecoderLayer`.
-
-        **kwargs contains some specific arguments of attentions.
+        """Forward function for MM_BEVFormerLayer.
 
         Args:
-            query (Tensor): The input query with shape
-                [num_queries, bs, embed_dims] if
-                self.batch_first is False, else
-                [bs, num_queries embed_dims].
-            key (Tensor): The key tensor with shape [num_keys, bs,
-                embed_dims] if self.batch_first is False, else
-                [bs, num_keys, embed_dims] .
-            value (Tensor): The value tensor with same shape as `key`.
-            query_pos (Tensor): The positional encoding for `query`.
-                Default: None.
-            key_pos (Tensor): The positional encoding for `key`.
-                Default: None.
-            attn_masks (List[Tensor] | None): 2D Tensor used in
-                calculation of corresponding attention. The length of
-                it should equal to the number of `attention` in
-                `operation_order`. Default: None.
-            query_key_padding_mask (Tensor): ByteTensor for `query`, with
-                shape [bs, num_queries]. Only used in `self_attn` layer.
-                Defaults to None.
-            key_padding_mask (Tensor): ByteTensor for `query`, with
-                shape [bs, num_keys]. Default: None.
-
-        Returns:
-            Tensor: forwarded results with shape [num_queries, bs, embed_dims].
+            query (Tensor): (bs, num_queries, embed_dims) if batch_first.
+            key (Tensor): Camera features.
+            value (Tensor): Camera features.
+            lidar_bev (Tensor): Raw lidar BEV (unused when lidar_bev_tokens provided).
+            **kwargs may contain:
+                lidar_bev_tokens (Tensor): Pre-projected lidar tokens
+                    (B, HW, C) from PerceptionTransformer.
         """
 
         norm_index = 0
@@ -772,15 +753,17 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
                 f'operation_order {self.num_attn}'
 
         # ----- helpers / locals -----
-        # value is usually a list/tuple of multi-level feats: [B, N_cam, C, H, W]
         mlvl_feats_local = kwargs.get('mlvl_feats', None)
         if mlvl_feats_local is None and isinstance(value, (list, tuple)) and len(value) > 0:
             mlvl_feats_local = value
 
+        # Pre-projected lidar tokens from transformer (encoder-side fusion)
+        lidar_bev_tokens = kwargs.get('lidar_bev_tokens', None)
+
         def _safe_attn_mask(i):
             return attn_masks[i] if (attn_masks is not None and i < len(attn_masks)) else None
 
-        # single-level BEV grid (for temporal SA)
+        # single-level BEV grid (for temporal SA and LiDAR SCA)
         bev_spatial_shapes = torch.as_tensor([[bev_h, bev_w]],
                                              dtype=torch.long, device=query.device)
         bev_level_start_index = torch.zeros(1, dtype=torch.long, device=query.device)
@@ -800,7 +783,7 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
 
         # infer runtime camera count if available
         num_cam_rt = None
-        if 'reference_points_cam' in locals() and reference_points_cam is not None:
+        if reference_points_cam is not None:
             num_cam_rt = reference_points_cam.size(1)
         elif mlvl_feats_local is not None and len(mlvl_feats_local) > 0 and mlvl_feats_local[0].dim() >= 5:
             num_cam_rt = mlvl_feats_local[0].size(1)
@@ -809,7 +792,7 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
             # -------- temporal self attention --------
             if layer == 'self_attn':
                 if prev_bev is None:
-                    # no temporal info; skip gracefully
+                    attn_index += 1
                     continue
                 query = self.attentions[attn_index](
                     query,
@@ -822,7 +805,9 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
                     reference_points=ref_2d,
                     spatial_shapes=bev_spatial_shapes,
                     level_start_index=bev_level_start_index,
-                    mlvl_feats=None,   # temporal SA uses BEV grid only
+                    mlvl_feats=None,
+                    bev_h=bev_h,
+                    bev_w=bev_w,
                     **kwargs
                 )
                 attn_index += 1
@@ -855,18 +840,21 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
                     depth=depth,
                     lidar_bev=lidar_bev,
                     depth_z=depth_z,
-                    mlvl_feats=mlvl_feats_local,   # <-- pass through
-                    num_cam_rt=num_cam_rt,         # harmless extra kwarg
+                    mlvl_feats=mlvl_feats_local,
+                    num_cam_rt=num_cam_rt,
                     **kwargs
                 )
 
+                # ---- LiDAR SCA (encoder-side fusion) ----
                 new_query2 = None
-                if getattr(self, 'lidar_cross_attn_layer', None) is not None and lidar_bev is not None:
-                    bs = query.size(0)
-                    ref2d_slice = ref_2d[bs:] if (ref_2d is not None and ref_2d.size(0) >= bs * 2) else ref_2d
+                if getattr(self, 'lidar_cross_attn_layer', None) is not None and lidar_bev_tokens is not None:
+                    # Use pre-projected lidar_bev_tokens (B, HW, C) as key/value
+                    # ref_2d is (B, HW, 1, 2) — BEV grid coords, perfect for deformable attn
                     new_query2 = self.lidar_cross_attn_layer(
-                        query, lidar_bev, lidar_bev,
-                        reference_points=ref2d_slice,
+                        query,
+                        lidar_bev_tokens,
+                        lidar_bev_tokens,
+                        reference_points=ref_2d,
                         spatial_shapes=bev_spatial_shapes,
                         level_start_index=bev_level_start_index,
                     )

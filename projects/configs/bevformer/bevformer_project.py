@@ -145,6 +145,7 @@ model = dict(
             use_prev_bev=True,
             pc_range=point_cloud_range,
             num_feature_levels=4,
+            fusion_mode='encoder',
             encoder=dict(
                 type='BEVFormerEncoder',
                 num_layers=3,
@@ -152,7 +153,7 @@ model = dict(
                 num_points_in_pillar=4,
                 return_intermediate=False,
                 transformerlayers=dict(
-                    type='CustomBaseTransformerLayer',
+                    type='MM_BEVFormerLayer',
                     attn_cfgs=[
                         dict(
                             type='TemporalSelfAttention',
@@ -175,9 +176,18 @@ model = dict(
                     feedforward_channels=_ffn_dim_,
                     ffn_dropout=0.1,
                     batch_first=True,
-                    operation_order=('self_attn', 'norm','cross_attn', 'norm',  # this comes first.
-                                     'ffn', 'norm'))),
-                    #use_prev_bev=False,
+                    operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
+                                     'ffn', 'norm'),
+                    lidar_cross_attn_layer=dict(
+                        type='CustomMSDeformableAttention',
+                        embed_dims=_dim_,
+                        num_heads=8,
+                        num_levels=1,
+                        num_points=4,
+                        batch_first=True,
+                        dropout=0.1,
+                    ),
+                )),
             decoder=dict(
                 type='DetectionTransformerDecoder',
                 num_layers=6,
@@ -250,8 +260,7 @@ model = dict(
 )
 
 dataset_type = 'CustomNuScenesDataset'
-#data_root = r'D:/datasets/nuscenes/'
-data_root = r'D:/datasets/nuscenes_15/'
+data_root = r'/home/xiaotwu/Code/BEVFormerFusion/data/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -305,7 +314,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='CustomCollect3D', keys=['img'])
+            dict(type='CustomCollect3D', keys=['points', 'img'])
         ])
 ]
 
@@ -361,10 +370,9 @@ lr_config = dict(
     min_lr_ratio=0.1)
 #total_epochs = 96
 
-evaluation = dict(interval=100000, pipeline=test_pipeline)
+evaluation = dict(interval=2000, pipeline=test_pipeline)
 
-#total_epochs = 96
-runner = dict(type='IterBasedRunner', max_iters=20000)
+runner = dict(type='IterBasedRunner', max_iters=8000)
 
 log_config = dict(
     interval=50,

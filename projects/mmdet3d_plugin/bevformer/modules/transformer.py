@@ -47,17 +47,19 @@ class PerceptionTransformer(BaseModule):
                  use_prev_bev: bool = False,
                  rotate_center=[50, 50],
                  pc_range: list = None,
-                 lidar_in_channels=64,      # ✅ add
-                 lidar_gate_init=-2.0,      # ✅ add
+                 lidar_in_channels=64,
+                 lidar_gate_init=-2.0,
+                 fusion_mode='decoder',
                  **kwargs):
         super(PerceptionTransformer, self).__init__(**kwargs)
         self.encoder = build_transformer_layer_sequence(encoder)
         self.decoder = build_transformer_layer_sequence(decoder)
         self.num_feature_levels = num_feature_levels
-        # right after self.encoder/self.decoder init in __init__:
-        self.num_feature_levels = num_feature_levels
 
         self.embed_dims = embed_dims
+        self.fusion_mode = fusion_mode
+        assert fusion_mode in ('none', 'decoder', 'encoder', 'encoder_decoder'), \
+            f"Invalid fusion_mode='{fusion_mode}'"
         self.num_cams = num_cams
         self.fp16_enabled = False
 
@@ -93,11 +95,16 @@ class PerceptionTransformer(BaseModule):
         if self.can_bus_norm:
             self.can_bus_mlp.add_module('norm', nn.LayerNorm(self.embed_dims))
 
-        # ---- LiDAR fusion v3 (concat + linear) ----
-        self.lidar_gate = nn.Parameter(torch.tensor(-2.0))   # sigmoid ~ 0.12 initially
-        self.lidar_proj = nn.Conv2d(64, self.embed_dims, kernel_size=1)  # 64 is PillarFeatureNet out (your case)
-        self.lidar_fuse_linear = nn.Linear(self.embed_dims * 2, self.embed_dims)
-        self.lidar_fuse_norm = nn.LayerNorm(self.embed_dims)
+        # ---- LiDAR fusion: decoder-side (concat + linear) ----
+        if self.fusion_mode in ('decoder', 'encoder_decoder'):
+            self.lidar_gate = nn.Parameter(torch.tensor(-2.0))
+            self.lidar_proj = nn.Conv2d(64, self.embed_dims, kernel_size=1)
+            self.lidar_fuse_linear = nn.Linear(self.embed_dims * 2, self.embed_dims)
+            self.lidar_fuse_norm = nn.LayerNorm(self.embed_dims)
+
+        # ---- LiDAR fusion: encoder-side projection ----
+        if self.fusion_mode in ('encoder', 'encoder_decoder'):
+            self.lidar_encoder_proj = nn.Conv2d(64, self.embed_dims, kernel_size=1)
 
     def _ensure_level_embeds(self, num_lvls: int):
         """Make self.level_embeds match the incoming number of FPN levels."""
@@ -178,6 +185,12 @@ class PerceptionTransformer(BaseModule):
                 self.lidar_fuse_norm.weight.fill_(1.0)
                 self.lidar_fuse_norm.bias.zero_()
 
+        # encoder-side LiDAR projection
+        if hasattr(self, "lidar_encoder_proj"):
+            nn.init.xavier_uniform_(self.lidar_encoder_proj.weight)
+            if self.lidar_encoder_proj.bias is not None:
+                nn.init.constant_(self.lidar_encoder_proj.bias, 0.)
+
 
     @auto_fp16(apply_to=('mlvl_feats', 'bev_queries', 'prev_bev', 'bev_pos'))
     def get_bev_features(
@@ -189,6 +202,7 @@ class PerceptionTransformer(BaseModule):
             grid_length=[1.02, 1.02],
             bev_pos=None,
             prev_bev=None,
+            bev_lidar=None,
             **kwargs):
 
         # --- make level embeds match the runtime FPN outputs ---
@@ -294,6 +308,16 @@ class PerceptionTransformer(BaseModule):
         level_start_index = torch.cat((spatial_shapes.new_zeros((1,)), spatial_shapes.prod(1).cumsum(0)[:-1]))
         feat_flatten = feat_flatten.permute(0, 2, 1, 3)  # (num_cam, H*W_all, B, C)
 
+        # --- encoder-side LiDAR projection ---
+        lidar_bev_tokens = None
+        if self.fusion_mode in ('encoder', 'encoder_decoder') and bev_lidar is not None:
+            bev_lidar_rs = F.interpolate(
+                bev_lidar, size=(bev_h, bev_w),
+                mode="bilinear", align_corners=False
+            )  # (B, C_lidar, H, W)
+            lidar_bev_tokens = self.lidar_encoder_proj(bev_lidar_rs)         # (B, C, H, W)
+            lidar_bev_tokens = lidar_bev_tokens.flatten(2).permute(0, 2, 1)  # (B, HW, C)
+
         # --- encoder ---
         bev_embed = self.encoder(
             bev_queries,
@@ -301,11 +325,12 @@ class PerceptionTransformer(BaseModule):
             feat_flatten,
             bev_h=bev_h,
             bev_w=bev_w,
-            bev_pos=bev_pos_used,                # <-- PETR pos (replaced) or original
+            bev_pos=bev_pos_used,
             spatial_shapes=spatial_shapes,
             level_start_index=level_start_index,
             prev_bev=prev_bev,
             shift=shift,
+            lidar_bev_tokens=lidar_bev_tokens,
             **kwargs
         )
         return bev_embed
@@ -335,7 +360,7 @@ class PerceptionTransformer(BaseModule):
             print("[TEST/TR] bev_lidar is None?", bev_lidar is None)
             self._dbg_test_tr_once = True
 
-        # 1) camera BEV from encoder (standard BEVFormer)
+        # 1) camera BEV from encoder (with optional encoder-side LiDAR fusion)
         bev_embed = self.get_bev_features(
             mlvl_feats,
             bev_queries,
@@ -344,11 +369,12 @@ class PerceptionTransformer(BaseModule):
             grid_length=grid_length,
             bev_pos=bev_pos,
             prev_bev=prev_bev,
+            bev_lidar=bev_lidar if self.fusion_mode in ('encoder', 'encoder_decoder') else None,
             **kwargs
         )  # (B, HW, C)
 
-        # 2) V3: concat + linear fusion (single memory level)
-        if bev_lidar is not None:
+        # 2) Decoder-side concat + linear fusion
+        if bev_lidar is not None and self.fusion_mode in ('decoder', 'encoder_decoder'):
             B, HW, C = bev_embed.shape
 
             if not hasattr(self, "_fuse_iter"):
