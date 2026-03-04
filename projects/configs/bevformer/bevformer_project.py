@@ -145,7 +145,7 @@ model = dict(
             use_prev_bev=True,
             pc_range=point_cloud_range,
             num_feature_levels=4,
-            fusion_mode='encoder',
+            fusion_mode='encoder_decoder',
             encoder=dict(
                 type='BEVFormerEncoder',
                 num_layers=3,
@@ -249,8 +249,8 @@ model = dict(
             pc_range=point_cloud_range))),
     test_cfg=dict(
         pts=dict(
-            score_thr=0.05, #0.35,          # start around 0.15–0.3
-            max_num=300, #150,        # avoid flooding JSON
+            score_thr=0.25,
+            max_num=200,
             #nms_type='circle',      # or 'nms' depending on your repo
             #circle_radius=2.5,      # for center-distance NMS (if supported)
             # nms={'type': 'nms', 'iou_threshold': 0.2},  # if IoU NMS is used
@@ -282,7 +282,7 @@ train_pipeline = [
     dict(type='PointsRangeFilter', point_cloud_range=point_cloud_range),
 
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
-    dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
+    dict(type='RandomScaleImageMultiViewImage', scales=[0.65]),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(type='DefaultFormatBundle3D', class_names=class_names),
 
@@ -308,7 +308,7 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
+            dict(type='RandomScaleImageMultiViewImage', scales=[0.65]),
             dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
@@ -365,14 +365,16 @@ optimizer_config = dict(
 lr_config = dict(
     policy='CosineAnnealing',
     by_epoch=False,
-    warmup='linear', warmup_iters=2000, warmup_ratio=1.0/1000,
+    warmup='linear', warmup_iters=5000, warmup_ratio=1.0/1000,
     #warmup_ratio=1.0 / 3,
     min_lr_ratio=0.1)
 #total_epochs = 96
 
-evaluation = dict(interval=2000, pipeline=test_pipeline)
+evaluation = dict(interval=5000, pipeline=test_pipeline)
 
-runner = dict(type='IterBasedRunner', max_iters=8000)
+# Full nuScenes trainval: ~28,130 samples, batch_size=1
+# 24 epochs = 28,130 * 24 = ~675,120 iters (single GPU)
+runner = dict(type='IterBasedRunner', max_iters=50000)
 
 log_config = dict(
     interval=50,
@@ -386,4 +388,4 @@ custom_hooks = [
     dict(type='EnsureTimeDataHook', priority='LOW'),
 ]
 
-checkpoint_config = dict(interval=2000, by_epoch=False)
+checkpoint_config = dict(interval=5000, by_epoch=False, max_keep_ckpts=5)
