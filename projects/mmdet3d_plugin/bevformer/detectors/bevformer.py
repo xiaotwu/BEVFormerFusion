@@ -15,7 +15,6 @@ import copy
 import numpy as np
 import mmdet3d
 from projects.mmdet3d_plugin.models.utils.bricks import run_time
-import os
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -232,60 +231,12 @@ class BEVFormer(MVXTwoStageDetector):
             prev_bev: previous BEV embedding for temporal
             points: list[Tensor] or None, each (Ni, C) for PointPillars
         """
-        import inspect, os
-        if not hasattr(self, "_DBG_FILE_ONCE"):
-            print("[DET/DBG] detector class file =", inspect.getfile(self.__class__))
-            print("[DET/DBG] detector cwd =", os.getcwd())
-            self._DBG_FILE_ONCE = True
-
-        # 2.1 Pull prev_bev from our cache unless the caller explicitly passed one
+        # Pull prev_bev from our cache unless the caller explicitly passed one
         if prev_bev is None:
             prev_bev = self._pop_prev_bev(img_metas)
-        self._dbg_print_prev("got", prev_bev)  # optional
 
-        if not hasattr(self, "_dbg_prev_once"):
-            print(f"[DET/CHECK] prev_bev is None? {prev_bev is None}")
-            if isinstance(prev_bev, torch.Tensor):
-                print(f"[DET/CHECK] prev_bev shape={tuple(prev_bev.shape)} dtype={prev_bev.dtype}")
-            self._dbg_prev_once = True
-
-        # 2.2 Build LiDAR BEV (PointPillars scatter output), if points are provided
-        bev_lidar = None
-        try:
-            bev_lidar = self.extract_pts_bev_feat(points)
-        except Exception as e:
-            print("[LIDAR/ERR] extract_pts_bev_feat failed:", repr(e))
-            raise   # <-- for now, crash so we don't silently disable LiDAR
-
-        # [DBG] Detector: confirm LiDAR BEV existence before passing to head (print once)
-        if not hasattr(self, "_dbg_lidar_det_once"):
-            print("[DET/DBG] points is None?", points is None)
-            print("[DET/DBG] bev_lidar computed is None?", bev_lidar is None)
-            if bev_lidar is not None:
-                print("[DET/DBG] bev_lidar shape:", tuple(bev_lidar.shape), bev_lidar.dtype)
-            self._dbg_lidar_det_once = True
-
-        # Optional: one-time debug for bev_lidar
-        if not hasattr(self, "_dbg_lidar_once"):
-            if bev_lidar is None:
-                print("[DET/CHECK] bev_lidar is None (camera-only path).")
-            else:
-                print(f"[DET/CHECK] bev_lidar shape={tuple(bev_lidar.shape)} dtype={bev_lidar.dtype}")
-            self._dbg_lidar_once = True
-
-        # 2.3 Run the head; pass prev_bev through
-        # Some heads won't accept bev_lidar kwarg -> fallback gracefully.
-        #bev_lidar = None
-
-        #print("[DET/DBG] will pass bev_lidar?", bev_lidar is not None)
-
-        if not hasattr(self, "_dbg_lidar_flow_once"):
-            print("[DET/DBG] bev_lidar computed is None?", bev_lidar is None)
-            if bev_lidar is not None:
-                print("[DET/DBG] bev_lidar shape:", tuple(bev_lidar.shape), bev_lidar.dtype)
-            self._dbg_lidar_flow_once = True
-
-        #bev_lidar = None
+        # Build LiDAR BEV (PointPillars scatter output)
+        bev_lidar = self.extract_pts_bev_feat(points)
 
         try:
             outs = self.pts_bbox_head(pts_feats, img_metas, prev_bev, bev_lidar=bev_lidar)
@@ -297,7 +248,6 @@ class BEVFormer(MVXTwoStageDetector):
         # Your head/transformer returns outs that may include 'bev_embed'
         if isinstance(outs, dict) and 'bev_embed' in outs:
             self._push_prev_bev(img_metas, outs['bev_embed'])
-            self._dbg_print_prev("push", outs['bev_embed'])  # optional
 
         # 2.5 Compute losses (unchanged)
         loss_inputs = [gt_bboxes_3d, gt_labels_3d, outs]
@@ -478,46 +428,12 @@ class BEVFormer(MVXTwoStageDetector):
 
     def simple_test_pts(self, x, img_metas, prev_bev=None, rescale=False, points=None):
         """Test function (pts branch) with optional LiDAR points."""
+        bev_lidar = self.extract_pts_bev_feat(points)
 
-        if not hasattr(self, "_dbg_test_once"):
-            print("[TEST] points is None?", points is None)
-            self._dbg_test_once = True
-
-        bev_lidar = None
-        try:
-            bev_lidar = self.extract_pts_bev_feat(points)
-        except Exception as e:
-            print(f"[WARN] extract_pts_bev_feat failed in test, running camera-only. Reason: {repr(e)}")
-            bev_lidar = None
-
-        #bev_lidar = None
-        # Head may or may not accept bev_lidar; fallback safely.
-        try:
-            outs = self.pts_bbox_head(x, img_metas, prev_bev=prev_bev, bev_lidar=bev_lidar)
-        except TypeError:
-            outs = self.pts_bbox_head(x, img_metas, prev_bev=prev_bev)
+        outs = self.pts_bbox_head(x, img_metas, prev_bev=prev_bev, bev_lidar=bev_lidar)
 
         bbox_list = self.pts_bbox_head.get_bboxes(
             outs, img_metas, rescale=rescale)
-        
-        #Evaluation debug
-        bboxes, scores, labels = bbox_list[0]   # from get_bboxes
-        bt = bboxes.tensor  # (N, box_dim)
-        print("[PRED] N =", bt.size(0),
-            "score min/mean/max =", float(scores.min()), float(scores.mean()), float(scores.max()))
-        print("[PRED] finite ratio =", torch.isfinite(bt).all(-1).float().mean().item())
-
-        # centers
-        cent = bboxes.gravity_center
-        print("[PRED] center xyz mean =", cent.mean(0).tolist(),
-            "min =", cent.min(0).values.tolist(),
-            "max =", cent.max(0).values.tolist())
-
-        # compare to pc_range
-        pc = self.pts_bbox_head.pc_range  # or from coder
-        inside = (cent[:,0] > pc[0]) & (cent[:,0] < pc[3]) & (cent[:,1] > pc[1]) & (cent[:,1] < pc[4])
-        print("[PRED] inside pc_range ratio =", inside.float().mean().item())
-        # Evaluation bug test end
 
         bbox_results = [
             bbox3d2result(bboxes, scores, labels)
@@ -570,8 +486,3 @@ class BEVFormer(MVXTwoStageDetector):
         # Store a detached copy to avoid holding the whole graph.
         self._prev_bev_cache[key] = bev_embed.detach()
 
-    def _dbg_print_prev(self, tag, prev):
-        if getattr(self, "_dbg_prev_once", True):
-            print(f"[DET/PREV] {tag}:",
-                "None" if prev is None else f"shape={tuple(prev.shape)} dtype={prev.dtype}")
-            self._dbg_prev_once = False

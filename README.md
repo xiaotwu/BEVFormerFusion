@@ -78,7 +78,7 @@ Each of the 4 encoder layers performs dual spatial cross-attention (SCA), allowi
 |-----------|-----------|---------|
 | Camera SCA | `MSDeformableAttention3D` | 4 sampling points, 4 feature levels |
 | LiDAR SCA | `CustomMSDeformableAttention` | 4 sampling points, 1 level (BEV plane) |
-| Blending | Learnable weighted sum | `cam * w + lidar * (1-w)`, softmax-normalized `nn.Parameter`, init 0.5 |
+| Blending | Learnable weighted sum | `cam * w + lidar * (1-w)`, w = sigmoid(logit), init 0.5 |
 
 For detailed pipeline and design rationale, see [Encoder-side_Fusion.md](Encoder-side_Fusion.md).
 
@@ -107,26 +107,16 @@ LiDAR features are single-frame snapshots with no temporal information. Blending
 
 For detailed analysis of the velocity problem and solution, see [Encoder-side_Fusion.md](Encoder-side_Fusion.md#velocity-problem-and-solution).
 
-## FP16 Mixed Precision Training
+## Training Precision
 
-Training uses `Fp16OptimizerHook` with dynamic loss scaling for approximately 2x speedup. The forward pass runs in FP16 (convolutions, attention, matmuls), while loss computation, optimizer state, and master weights remain in FP32.
+Training runs in **full FP32 precision** to maximize accuracy. All forward pass operations, loss computation, optimizer state, and gradient accumulation use 32-bit floating point, ensuring no numerical degradation in the fusion pipeline.
 
-```
-Fp16OptimizerHook
-  |
-  +-- Forward pass: FP16 (convolutions, attention, matmuls)
-  +-- Loss computation: FP32
-  +-- Optimizer state: FP32 (master weights)
-  +-- Gradient scaling: dynamic (auto loss_scale)
-```
-
-**Special handling for LiDAR**: The `hard_voxelize` CUDA kernel does not support FP16 inputs. Point clouds are explicitly cast to FP32 before voxelization in `extract_pts_bev_feat()`, while the rest of the LiDAR pipeline runs in FP16.
-
-| Metric | FP32 | FP16 |
-|--------|------|------|
-| Speed | 1.73 s/iter | 0.85 s/iter |
-| GPU memory | 8.9 GB | 8.0 GB |
-| 200K iterations | ~4 days | ~2 days |
+| Metric | Value |
+|--------|-------|
+| Precision | FP32 (full) |
+| Speed | ~1.73 s/iter |
+| GPU memory | ~8.9 GB |
+| 200K iterations | ~4 days (RTX 5070 Ti 16GB) |
 
 ## Quick Start
 
@@ -190,7 +180,7 @@ bash tools/extract_results.sh work_dirs/bevformer_project
 | Parameter | Value |
 |-----------|-------|
 | Iterations | 200,000 |
-| Precision | FP16 mixed (`Fp16OptimizerHook`, dynamic loss scale) |
+| Precision | FP32 (full precision) |
 | Optimizer | AdamW, lr=2e-4, weight_decay=0.01 |
 | LR schedule | Cosine annealing, warmup=10K iters, min_lr_ratio=1e-3 |
 | Backbone | ResNet50 (frozen stage 1, lr_mult=0.1) |
@@ -208,8 +198,8 @@ bash tools/extract_results.sh work_dirs/bevformer_project
 | Loss | Type | Weight | Description |
 |------|------|--------|-------------|
 | `loss_cls` | Focal | 2.0 | 10-class classification |
-| `loss_bbox` | L1 | 0.25 | 3D bounding box regression (10-dim) |
-| `loss_vel` | SmoothL1 | 0.25 | Velocity from camera-only BEV head |
+| `loss_bbox` | L1 | 0.25 | 3D bounding box regression (velocity & yaw indices zeroed) |
+| `loss_vel` | SmoothL1 | 0.25 | Velocity from dedicated camera-only BEV head |
 | `loss_yaw_bin` | CrossEntropy | 0.2 | Yaw bin classification (24 bins) |
 | `loss_yaw_res` | SmoothL1 | 0.2 | Yaw residual regression (sin, cos) |
 
@@ -217,12 +207,12 @@ bash tools/extract_results.sh work_dirs/bevformer_project
 
 | File | Changes |
 |------|---------|
-| `bevformer.py` | LiDAR branch (PointPillars), FP32 voxelization cast for FP16 compatibility |
+| `bevformer.py` | LiDAR branch (PointPillars) |
 | `transformer.py` | Encoder/decoder-side fusion modules, `bev_embed_cam` clone for velocity head |
-| `encoder.py` | LiDAR SCA cross-attention, learnable blend weights (`cross_model_weights`) |
+| `encoder.py` | LiDAR SCA cross-attention, learnable blend weights (`cross_model_weights_logit`) |
 | `bevformer_head.py` | Velocity head (`vel_cross_attn` + MLP), `loss_vel`, yaw bin/res heads |
 | `nms_free_coder.py` | Velocity override from velocity head, yaw bin/res decoding |
-| `train.py` | Disabled `detect_anomaly` for FP16 compatibility |
+| `train.py` | Anomaly detection enabled for debugging |
 
 ## Dataset
 

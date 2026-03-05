@@ -46,7 +46,6 @@ class BEVFormerEncoder(TransformerLayerSequence):
         # temporal queue controls (use your config value if present)
         self.queue_length = getattr(self, "queue_length", 2)  # set to 2 for your 6GB GPU, or leave if already defined
         self._bev_queue = []  # stores past BEV tokens; each entry: (bs, H*W, C), batch-first
-        print("[ENC] USING encoder.py at runtime")
 
     @staticmethod
     def get_reference_points(H, W, Z=8, num_points_in_pillar=4, dim='3d', bs=1, device='cuda', dtype=torch.float):
@@ -170,11 +169,6 @@ class BEVFormerEncoder(TransformerLayerSequence):
                 img_metas=None,
                 **kwargs):
 
-        if not hasattr(self, "_dbg_enc_prev_once"):
-            print("[ENC/ARGS] prev_bev arg is",
-                  "None" if prev_bev is None else f"Tensor {tuple(prev_bev.shape)}")
-            self._dbg_enc_prev_once = True
-
         output = bev_query
         intermediate = []
 
@@ -213,22 +207,6 @@ class BEVFormerEncoder(TransformerLayerSequence):
         bs_q, n_q, c_q = bev_query.shape
         assert n_q == bev_h * bev_w, f"[Encoder] BEV tokens mismatch: expected {bev_h*bev_w}, got {n_q}"
 
-        # simple debug: check prev_bev vs current bev
-        if prev_bev is not None and not hasattr(self, "_enc_prev_diff_once"):
-            import torch.nn.functional as F
-            if prev_bev.dim() == 3 and prev_bev.shape[0] == bev_query.shape[1]:
-                prev_bev_bf = prev_bev.permute(1, 0, 2).contiguous()
-            else:
-                prev_bev_bf = prev_bev.contiguous()
-            mean_abs_diff = (prev_bev_bf - bev_query).abs().mean().item()
-            cos_sim = F.cosine_similarity(
-                prev_bev_bf.reshape(prev_bev_bf.size(0), -1),
-                bev_query.reshape(bev_query.size(0), -1),
-                dim=1
-            ).mean().item()
-            print(f"[ENC/CHK] prev_bev present | mean|Δ|={mean_abs_diff:.4f} | cos_sim={cos_sim:.4f}")
-            self._enc_prev_diff_once = True
-
         # --- run the encoder layers, passing prev_bev straight through ---
         for lid, layer in enumerate(self.layers):
             output = layer(
@@ -249,11 +227,6 @@ class BEVFormerEncoder(TransformerLayerSequence):
                 img_metas=metas,
                 **kwargs
             )
-
-            if not hasattr(self, "_dbg_enc_once"):
-                ok = torch.isfinite(output).all()
-                print(f"[DBG/ENC] layer {lid} output finite? {bool(ok)} shape={tuple(output.shape)}")
-                self._dbg_enc_once = True
 
             bev_query = output
             if self.return_intermediate:
@@ -316,8 +289,6 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
         self._bev_queue = []          # list of BEV tensors, each (bs, H*W, C), detached
         self._step_tag = None         # cache key to avoid appending multiple times per frame
         self._cached_value_bev = None # reuse within the same frame across sublayers
-        import inspect
-        print("[ENC/LAYER FILE]", inspect.getfile(self.__class__), flush=True)
 
 
 
@@ -487,14 +458,6 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
 
 
         for layer in self.operation_order:
-            # temporal self attention
-
-            # --- sanity checks for TSA inputs ---
-            print("[CALLSITE] query", tuple(query.shape),
-                "prev_bev", None if prev_bev is None else tuple(prev_bev.shape),
-                "spatial_shapes", None if spatial_shapes is None else spatial_shapes.tolist())
-
-
             if layer == 'self_attn':
 
                 if prev_bev is None:
@@ -509,11 +472,6 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                     "bev_w": bev_w,
                 }
 
-                print("[CALLSITE/TSA]",
-                    "query", tuple(query.shape),
-                    "prev_bev", None if prev_bev is None else tuple(prev_bev.shape),
-                    "spatial_shapes", tsa_kwargs["spatial_shapes"].tolist())
-    
                 # ------------------ build temporal stack for TSA (inside EncoderLayer) ------------------
                 bs, S_now, C = query.shape  # query is (bs, H*W, C) here (batch-first)
                 # Get BEV size; if you already have bev_h/bev_w in scope, use them; otherwise derive:
@@ -566,11 +524,6 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                 expected = L * (H * W)
                 assert S_v == expected, f"[ENC/TSA] S_v {S_v} != L*H*W {expected} (L={L}, H={H}, W={W})"
 
-                # one-time confirmation (will print once per process)
-                if not hasattr(self, "_enc_tsa_dbg"):
-                    print(f"[ENC/TSA] bs={bs}, H*W={H*W}, L={L}, S_v={S_v}, "
-                        f"q={tuple(query.shape)}, v_bev={tuple(value_bev.shape)}")
-                    self._enc_tsa_dbg = True
                 # ------------------ end temporal stack builder ------------------
 
                 # ------------------ call TSA with guaranteed multi-frame 'value' ------------------
@@ -624,9 +577,6 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                     depth=depth, lidar_bev=lidar_bev, depth_z=depth_z,
                     **kwargs
                 )
-                # ... (your lidar_cross_attn_layer blend stays the same)
-
-
                 if self.lidar_cross_attn_layer:
                     bs = query.size(0)
                     ref2d_slice = ref_2d[bs:] if (ref_2d is not None and ref_2d.size(0) >= bs * 2) else ref_2d
@@ -641,9 +591,9 @@ class BEVFormerLayer(MyCustomBaseTransformerLayer):
                 else:
                     new_query2 = None
 
-                query = new_query1 if new_query2 is None else (
-                    new_query1 * self.cross_model_weights + (1 - self.cross_model_weights) * new_query2
-                )
+                # NOTE: BEVFormerLayer does not support LiDAR fusion.
+                # Use MM_BEVFormerLayer for encoder-side fusion.
+                query = new_query1
                 attn_index += 1
                 identity = query
 
@@ -689,10 +639,11 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
         assert len(operation_order) == 6
         assert set(operation_order) == set(
             ['self_attn', 'norm', 'cross_attn', 'ffn'])
-        self.cross_model_weights = torch.nn.Parameter(torch.tensor(0.5), requires_grad=True) 
+        # Learnable blend logit: sigmoid(0.0) = 0.5, so both modalities
+        # start with equal weight.  Sigmoid guarantees w in (0, 1).
+        self.cross_model_weights_logit = torch.nn.Parameter(torch.tensor(0.0), requires_grad=True)
         if lidar_cross_attn_layer:
             self.lidar_cross_attn_layer = build_attention(lidar_cross_attn_layer)
-            # self.cross_model_weights+=1
         else:
             self.lidar_cross_attn_layer = None
 
@@ -860,7 +811,8 @@ class MM_BEVFormerLayer(MyCustomBaseTransformerLayer):
                     )
 
                 if new_query2 is not None:
-                    query = new_query1 * self.cross_model_weights + (1 - self.cross_model_weights) * new_query2
+                    w = torch.sigmoid(self.cross_model_weights_logit)
+                    query = new_query1 * w + new_query2 * (1 - w)
                 else:
                     query = new_query1
 

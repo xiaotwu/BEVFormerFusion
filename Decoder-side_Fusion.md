@@ -56,9 +56,7 @@ bev_lidar (B, 64, 512, 512)
 | LayerNorm | Over embed_dims (256) | Normalize feature variance |
 | Alpha | 5.0 (constant) | Scale to camera BEV magnitude range |
 
-**Finding**: Debug diagnostics show raw LiDAR tokens have norms of ~0.4, which rise to ~7.0 after LayerNorm and ~35.0 after alpha scaling. Camera BEV features have norms of ~16.0. The alpha scaling brings LiDAR features into the same order of magnitude, ensuring meaningful gradient flow through the downstream fusion linear layer.
-
-**Note**: The `lidar_gate` parameter exists as an `nn.Parameter` but is currently unused (reserved for future learnable sigmoid gating).
+The alpha scaling brings LiDAR features into the same order of magnitude as camera BEV features (~16.0), ensuring meaningful gradient flow through the downstream fusion linear layer.
 
 ### 4. Concat + Linear Fusion
 
@@ -115,11 +113,11 @@ Each of the 6 decoder layers performs:
 | **Location** | Inside each encoder layer (4x) | Once, between encoder and decoder |
 | **Mechanism** | Dual SCA with learnable blend | Concat + Linear + LayerNorm |
 | **LiDAR projection** | `lidar_encoder_proj` (Conv2d 64&rarr;256) | `lidar_proj` (Conv2d 64&rarr;256) |
-| **Blending** | `cam * w + lidar * (1-w)`, learnable softmax | Concat then learned linear projection |
+| **Blending** | `cam * w + lidar * (1-w)`, w = sigmoid(logit) | Concat then learned linear projection |
 | **Initialization** | Standard Xavier | Identity passthrough (camera=I, lidar=0) |
 | **Effect on temporal** | Dilutes TSA signal at each layer | Single dilution after encoder |
 | **Granularity** | Fine-grained, per-layer refinement | Coarse, single-shot injection |
-| **Parameters** | `cross_model_weights` (2 values per layer) | `lidar_fuse_linear` (256x512 + bias) |
+| **Parameters** | `cross_model_weights_logit` (1 scalar per layer) | `lidar_fuse_linear` (256x512 + bias) |
 
 **Finding**: When both fusion stages are active (`encoder_decoder` mode), LiDAR information enters the BEV through two complementary paths:
 1. **Encoder**: fine-grained, per-layer blending via deformable attention — allows gradual refinement of BEV features with LiDAR geometry at each abstraction level
@@ -134,28 +132,6 @@ All decoder-side fusion modules are defined in `transformer.py` within the `Perc
 | `lidar_proj` | `Conv2d(64, 256, 1)` | (64, 256, 1, 1) | Project LiDAR channels to embed_dims |
 | `lidar_fuse_linear` | `Linear(512, 256)` | (256, 512) | Compress concat(cam, lidar) back to C |
 | `lidar_fuse_norm` | `LayerNorm(256)` | (256,) | Normalize after fusion |
-| `lidar_gate` | `nn.Parameter` | scalar | Reserved for learnable gating (unused) |
-
-## Debug Diagnostics
-
-The fusion logs diagnostic information every 500 iterations (rank 0 only), providing visibility into feature magnitude alignment and modality balance.
-
-```
-[DBG] token-norm mean cam=16.002 lidar_pre=0.404 lidar_ln=6.982 lidar_post=34.909 alpha=5.00
-[DBG] contrib proxy cam=256.09 lid=4.81 ratio=0.019
-```
-
-| Metric | Description | Typical Values |
-|--------|-------------|----------------|
-| `cam` | Camera BEV token norm | ~16.0 |
-| `lidar_pre` | Raw LiDAR token norm (before normalization) | ~0.4 |
-| `lidar_ln` | LiDAR token norm after LayerNorm | ~7.0 |
-| `lidar_post` | LiDAR token norm after alpha scaling | ~35.0 |
-| `alpha` | Constant scaling factor | 5.0 |
-| `contrib proxy cam/lid` | Linear layer weight amplification per modality | cam ~256, lid ~5 (early training) |
-| `ratio` | lid / cam contribution ratio | ~0.02 (early), increases during training |
-
-**Finding**: The `ratio` metric tracks how the linear layer learns to incorporate LiDAR features over the course of training. Starting near zero (due to identity initialization), it gradually increases as the network discovers useful LiDAR signals. This confirms the identity initialization strategy works as intended — the model starts by trusting camera features and progressively learns to leverage LiDAR.
 
 ## File Reference
 

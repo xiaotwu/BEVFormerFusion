@@ -69,11 +69,6 @@ class PerceptionTransformer(BaseModule):
         self.can_bus_norm = can_bus_norm
         self.use_cams_embeds = use_cams_embeds
         self.use_prev_bev = use_prev_bev
-        if not hasattr(self, "_dbg_prev_flag_once"):
-            print(f"[TRANS] use_prev_bev flag = {self.use_prev_bev}")
-            self._dbg_prev_flag_once = True
-
-
         self.two_stage_num_proposals = two_stage_num_proposals
         self.init_layers()
         self.rotate_center = rotate_center
@@ -97,7 +92,6 @@ class PerceptionTransformer(BaseModule):
 
         # ---- LiDAR fusion: decoder-side (concat + linear) ----
         if self.fusion_mode in ('decoder', 'encoder_decoder'):
-            self.lidar_gate = nn.Parameter(torch.tensor(-2.0))
             self.lidar_proj = nn.Conv2d(64, self.embed_dims, kernel_size=1)
             self.lidar_fuse_linear = nn.Linear(self.embed_dims * 2, self.embed_dims)
             self.lidar_fuse_norm = nn.LayerNorm(self.embed_dims)
@@ -158,9 +152,6 @@ class PerceptionTransformer(BaseModule):
                     nn.init.constant_(m.bias, 0.)
 
         # 2) LiDAR blocks
-        if hasattr(self, "lidar_gate"):
-            nn.init.constant_(self.lidar_gate, -2.0)
-
         if hasattr(self, "lidar_proj"):
             nn.init.xavier_uniform_(self.lidar_proj.weight)
             if self.lidar_proj.bias is not None:
@@ -225,20 +216,8 @@ class PerceptionTransformer(BaseModule):
         
 
         # DEBUG: what did we get from the detector?
-        if not hasattr(self, "_dbg_bev_feat_prev_once"):
-            print("[PERCEP] get_bev_features: incoming prev_bev =",
-                  "None" if prev_bev is None else tuple(prev_bev.shape))
-            print("[PERCEP] use_prev_bev flag:", getattr(self, "use_prev_bev", None))
-            self._dbg_bev_feat_prev_once = True
-
-        # --- standard BEVFormer prep ---
         if not getattr(self, 'use_prev_bev', False):
-            print("[PERCEP] use_prev_bev=False -> dropping prev_bev before encoder")
             prev_bev = None
-        else:
-            if not hasattr(self, "_dbg_bev_feat_keep_once"):
-                print("[PERCEP] use_prev_bev=True -> keeping prev_bev for encoder")
-                self._dbg_bev_feat_keep_once = True
 
         bs = mlvl_feats[0].size(0)
 
@@ -350,16 +329,6 @@ class PerceptionTransformer(BaseModule):
                 bev_lidar=None,   # ✅ comes from head/detector
                 **kwargs):
 
-        if not hasattr(self, "_dbg_lidar_tr_once"):
-            print("[TR/DBG] bev_lidar is None?", bev_lidar is None)
-            if bev_lidar is not None:
-                print("[TR/DBG] bev_lidar shape:", tuple(bev_lidar.shape), bev_lidar.dtype)
-            self._dbg_lidar_tr_once = True
-
-        if not hasattr(self, "_dbg_test_tr_once"):
-            print("[TEST/TR] bev_lidar is None?", bev_lidar is None)
-            self._dbg_test_tr_once = True
-
         # 1) camera BEV from encoder (with optional encoder-side LiDAR fusion)
         bev_embed = self.get_bev_features(
             mlvl_feats,
@@ -378,117 +347,21 @@ class PerceptionTransformer(BaseModule):
 
         # 2) Decoder-side concat + linear fusion
         if bev_lidar is not None and self.fusion_mode in ('decoder', 'encoder_decoder'):
-            B, HW, C = bev_embed.shape
-
-            if not hasattr(self, "_fuse_iter"):
-                self._fuse_iter = 0
-            self._fuse_iter += 1
-            
-
-            # -----------------------------
-            # choose fusion weight alpha
-            # -----------------------------
-            # Learnable gate (use later):
-            # alpha = torch.sigmoid(self.lidar_gate)  # scalar in (0,1)
-
-            # Constant alpha (your current setting):
-            alpha = bev_embed.new_tensor(5)  # change to 0.5, 1.0, etc.
-
-            # -----------------------------
-            # rank0 helper (DDP-safe-ish)
-            # -----------------------------
-            def _is_rank0():
-                try:
-                    import torch.distributed as dist
-                    return (not dist.is_available()) or (not dist.is_initialized()) or dist.get_rank() == 0
-                except Exception:
-                    return True
-
-            # -----------------------------
-            # init counters once (safe)
-            # -----------------------------
-            if not hasattr(self, "_gate_iter"):
-                self._gate_iter = 0
-            self._gate_iter += 1
-
-            # one-time print when fusion activates
-            if _is_rank0() and not hasattr(self, "_lidar_seen_once"):
-                print(f"[LiDAR-FUSION] enabled. alpha={float(alpha.detach().cpu()):.4f}")
-                self._lidar_seen_once = True
-
-            # -----------------------------
-            # LiDAR BEV -> tokens (B, HW, C)
-            # -----------------------------
+            # Project LiDAR BEV to tokens
             bev_lidar_rs = F.interpolate(
                 bev_lidar, size=(bev_h, bev_w),
                 mode="bilinear", align_corners=False
-            )  # (B, C_lidar, H, W)
-
+            )  # (B, C_lidar, bev_h, bev_w)
             bev_lidar_tok = self.lidar_proj(bev_lidar_rs)              # (B, C, H, W)
             bev_lidar_tok = bev_lidar_tok.flatten(2).permute(0, 2, 1)  # (B, HW, C)
 
-            # -----------------------------
-            # diagnostics: norms pre / after LN / after alpha
-            # -----------------------------
-            do_log = bool(self.training and _is_rank0() and (self._gate_iter % 500 == 0))
-            if do_log:
-                cam_n = float(bev_embed.detach().norm(dim=-1).mean().cpu())
-                lid_pre = float(bev_lidar_tok.detach().norm(dim=-1).mean().cpu())
-
-            # apply LN then alpha
+            # Normalize and scale to match camera BEV magnitudes
             bev_lidar_tok = F.layer_norm(bev_lidar_tok, (bev_lidar_tok.size(-1),))
+            bev_lidar_tok = bev_lidar_tok * 5.0
 
-            if do_log:
-                lid_ln = float(bev_lidar_tok.detach().norm(dim=-1).mean().cpu())
-
-            bev_lidar_tok = bev_lidar_tok * alpha
-
-            if do_log:
-                lid_post = float(bev_lidar_tok.detach().norm(dim=-1).mean().cpu())
-                a = float(alpha.detach().cpu())
-                # lid_post should be ~ lid_ln * alpha (within fp/variance)
-                print(f"[DBG] token-norm mean cam={cam_n:.3f} "
-                    f"lidar_pre={lid_pre:.3f} lidar_ln={lid_ln:.3f} "
-                    f"lidar_post={lid_post:.3f} alpha={a:.2f}")
-
-            #if self.training and _is_rank0() and (self._fuse_iter % 500 == 0):
-            #    W = self.lidar_fuse_linear.weight.detach()   # (C, 2C)
-            #    Cdim = self.embed_dims
-            #    w_cam = W[:, :Cdim]
-            #    w_lid = W[:, Cdim:]
-                # expected contribution magnitude proxy
-            #    cam_proxy = float((w_cam.norm() * bev_embed.detach().norm(dim=-1).mean()).cpu())
-            #    lid_proxy = float((w_lid.norm() * bev_lidar_tok.detach().norm(dim=-1).mean()).cpu())
-            #    print(f"[DBG] contrib proxy cam={cam_proxy:.2f} lid={lid_proxy:.2f} ratio={lid_proxy/(cam_proxy+1e-6):.3f}")
-
-
-            # -----------------------------
-            # fuse: concat then linear -> C, then norm
-            # -----------------------------
+            # Concat + linear fusion
             bev_fused = torch.cat([bev_embed, bev_lidar_tok], dim=-1)            # (B, HW, 2C)
-            bev_embed = self.lidar_fuse_norm(self.lidar_fuse_linear(bev_fused)) # (B, HW, C)
-
-            # -----------------------------
-            # diagnostics: does fuse linear ignore LiDAR half?
-            # -----------------------------
-            # --- contribution proxy debug (safe) ---
-            if self.training and _is_rank0() and (self._fuse_iter % 500 == 0):
-                W = self.lidar_fuse_linear.weight.detach()   # Tensor [C, 2C]
-                Cdim = self.embed_dims
-
-                w_cam = W[:, :Cdim]   # Tensor [C, C]
-                w_lid = W[:, Cdim:]   # Tensor [C, C]
-
-                cam_tok_norm = bev_embed.detach().norm(dim=-1).mean()      # Tensor scalar
-                lid_tok_norm = bev_lidar_tok.detach().norm(dim=-1).mean()  # Tensor scalar
-
-                cam_proxy = (w_cam.norm() * cam_tok_norm).item()
-                lid_proxy = (w_lid.norm() * lid_tok_norm).item()
-                ratio = lid_proxy / (cam_proxy + 1e-6)
-
-                print(f"[DBG] contrib proxy cam={cam_proxy:.2f} lid={lid_proxy:.2f} ratio={ratio:.3f}")
-
-
+            bev_embed = self.lidar_fuse_norm(self.lidar_fuse_linear(bev_fused))  # (B, HW, C)
 
         # 3) standard BEVFormer decoder prep
         bs = mlvl_feats[0].size(0)
