@@ -120,7 +120,7 @@ class NMSFreeCoder(BaseBBoxCoder):
 
         pass
 
-    def decode_single(self, cls_scores, bbox_preds, yaw_bin_logits=None, yaw_res_preds=None):
+    def decode_single(self, cls_scores, bbox_preds, yaw_bin_logits=None, yaw_res_preds=None, vel_preds=None):
 
         max_num = self.max_num
 
@@ -156,6 +156,12 @@ class NMSFreeCoder(BaseBBoxCoder):
             bbox_preds[..., 7] = torch.cos(yaw)
 
         # -------------------------------------------------------
+
+        # Override velocity with dedicated velocity head predictions
+        if vel_preds is not None:
+            vp = vel_preds[bbox_index]  # [K, 2]
+            bbox_preds = bbox_preds.clone()
+            bbox_preds[..., 8:10] = vp
 
         # --- QUICK YAW SANITY CHECK (paste right after `bbox_preds = bbox_preds[bbox_index]`) ---
         if not hasattr(self, "_dbg_once_yaw"):
@@ -296,8 +302,9 @@ class NMSFreeCoder(BaseBBoxCoder):
 
         all_yaw_bin_logits = preds_dicts.get('all_yaw_bin_logits', None)
         all_yaw_res_preds  = preds_dicts.get('all_yaw_res_preds', None)
+        all_vel_preds      = preds_dicts.get('all_vel_preds', None)
 
-        # >>> ADD THIS: slice last layer if yaw tensors are 4D (nb_dec, bs, num_query, ...)
+        # >>> slice last layer if yaw tensors are 4D (nb_dec, bs, num_query, ...)
         if all_yaw_bin_logits is not None:
             if isinstance(all_yaw_bin_logits, (list, tuple)):
                 all_yaw_bin_logits = all_yaw_bin_logits[-1]
@@ -309,6 +316,12 @@ class NMSFreeCoder(BaseBBoxCoder):
                 all_yaw_res_preds = all_yaw_res_preds[-1]
             elif all_yaw_res_preds.dim() == 4:
                 all_yaw_res_preds = all_yaw_res_preds[-1]     # [bs, num_query, 2]
+
+        if all_vel_preds is not None:
+            if isinstance(all_vel_preds, (list, tuple)):
+                all_vel_preds = all_vel_preds[-1]
+            elif all_vel_preds.dim() == 4:
+                all_vel_preds = all_vel_preds[-1]             # [bs, num_query, 2]
 
         # now this assert will pass
         if all_yaw_bin_logits is not None:
@@ -324,6 +337,7 @@ class NMSFreeCoder(BaseBBoxCoder):
                     all_bbox_preds[i],
                     yaw_bin_logits=(all_yaw_bin_logits[i] if all_yaw_bin_logits is not None else None),
                     yaw_res_preds=(all_yaw_res_preds[i] if all_yaw_res_preds is not None else None),
+                    vel_preds=(all_vel_preds[i] if all_vel_preds is not None else None),
                 )
             )
         return predictions_list

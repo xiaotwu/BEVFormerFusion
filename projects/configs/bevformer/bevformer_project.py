@@ -74,7 +74,7 @@ _ffn_dim_ = _dim_*2
 _num_levels_ = 4
 bev_h_ = 100
 bev_w_ = 100
-queue_length = 3 # each sequence contains `queue_length` frames.
+queue_length = 4 # each sequence contains `queue_length` frames.
 
 model = dict(
     type='BEVFormer',
@@ -129,7 +129,7 @@ model = dict(
         type='BEVFormerHead',
         bev_h=bev_h_,
         bev_w=bev_w_,
-        num_query=300,
+        num_query=450,
         num_classes=10,
         in_channels=_dim_,
         sync_cls_avg_factor=True,
@@ -148,7 +148,7 @@ model = dict(
             fusion_mode='encoder_decoder',
             encoder=dict(
                 type='BEVFormerEncoder',
-                num_layers=3,
+                num_layers=4,
                 pc_range=point_cloud_range,
                 num_points_in_pillar=4,
                 return_intermediate=False,
@@ -218,7 +218,7 @@ model = dict(
             type='NMSFreeCoder',
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             pc_range=point_cloud_range,
-            max_num=300,
+            max_num=450,
             voxel_size=voxel_size,
             num_classes=10),
         positional_encoding=dict(
@@ -250,7 +250,7 @@ model = dict(
     test_cfg=dict(
         pts=dict(
             score_thr=0.25,
-            max_num=200,
+            max_num=300,
             #nms_type='circle',      # or 'nms' depending on your repo
             #circle_radius=2.5,      # for center-distance NMS (if supported)
             # nms={'type': 'nms', 'iou_threshold': 0.2},  # if IoU NMS is used
@@ -350,7 +350,7 @@ data = dict(
 
 optimizer = dict(
     type='AdamW',
-    lr=1.0e-4,
+    lr=2.0e-4,
     paramwise_cfg=dict(
         custom_keys={
             'img_backbone': dict(lr_mult=0.1),
@@ -359,22 +359,19 @@ optimizer = dict(
     )
 
 optimizer_config = dict(
-    #type='Fp16OptimizerHook',
+    type='Fp16OptimizerHook',
+    loss_scale='dynamic',
     grad_clip=dict(max_norm=1.0, norm_type=2))
 # learning policy
 lr_config = dict(
     policy='CosineAnnealing',
     by_epoch=False,
-    warmup='linear', warmup_iters=5000, warmup_ratio=1.0/1000,
-    #warmup_ratio=1.0 / 3,
-    min_lr_ratio=0.1)
-#total_epochs = 96
+    warmup='linear', warmup_iters=10000, warmup_ratio=1.0/1000,
+    min_lr_ratio=1e-3)
 
-evaluation = dict(interval=5000, pipeline=test_pipeline)
+evaluation = dict(interval=20000, pipeline=test_pipeline)
 
-# Full nuScenes trainval: ~28,130 samples, batch_size=1
-# 24 epochs = 28,130 * 24 = ~675,120 iters (single GPU)
-runner = dict(type='IterBasedRunner', max_iters=50000)
+runner = dict(type='IterBasedRunner', max_iters=200000)
 
 log_config = dict(
     interval=50,
@@ -388,4 +385,4 @@ custom_hooks = [
     dict(type='EnsureTimeDataHook', priority='LOW'),
 ]
 
-checkpoint_config = dict(interval=5000, by_epoch=False, max_keep_ckpts=5)
+checkpoint_config = dict(interval=20000, by_epoch=False, max_keep_ckpts=5)

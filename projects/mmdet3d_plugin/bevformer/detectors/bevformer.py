@@ -161,6 +161,9 @@ class BEVFormer(MVXTwoStageDetector):
         if any(p is None for p in points):
             return None
 
+        # Voxelization CUDA kernel requires FP32 — cast from FP16 if needed
+        points = [p.float() for p in points]
+
         voxels, coors, num_points = self.voxelize(points)
         batch_size = len(points)
 

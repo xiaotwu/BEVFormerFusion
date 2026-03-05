@@ -30,7 +30,7 @@ from mmseg import __version__ as mmseg_version
 from mmcv.utils import TORCH_VERSION, digit_version
 
 import torch
-torch.autograd.set_detect_anomaly(True)  # <-- add this
+# torch.autograd.set_detect_anomaly(True)  # disabled for FP16 compatibility
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')

@@ -373,6 +373,9 @@ class PerceptionTransformer(BaseModule):
             **kwargs
         )  # (B, HW, C)
 
+        # Save camera-only BEV before any decoder-side LiDAR fusion
+        bev_embed_cam = bev_embed.clone()  # (B, HW, C)
+
         # 2) Decoder-side concat + linear fusion
         if bev_lidar is not None and self.fusion_mode in ('decoder', 'encoder_decoder'):
             B, HW, C = bev_embed.shape
@@ -519,5 +522,5 @@ class PerceptionTransformer(BaseModule):
             **kwargs
         )
 
-        return bev_embed, inter_states, init_reference_out, inter_references
+        return bev_embed, inter_states, init_reference_out, inter_references, bev_embed_cam
 

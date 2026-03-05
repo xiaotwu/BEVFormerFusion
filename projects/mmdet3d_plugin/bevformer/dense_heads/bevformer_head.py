@@ -119,7 +119,7 @@ class BEVFormerHead(DETRHead):
                  bbox_coder=None,
                  num_cls_fcs=2,
                  code_weights=[1.0, 1.0, 1.0,
-                                 1.0, 1.0, 1.0, 2.0, 2.0, 0.2, 0.2],
+                                 1.0, 1.0, 1.0, 2.0, 2.0, 0.5, 0.5],
                  bev_h=100,
                  bev_w=100,
                  **kwargs):
@@ -154,7 +154,7 @@ class BEVFormerHead(DETRHead):
         
         # ---- code_weights (must be after Module.__init__ via super()) ----
         if code_weights is None:
-            cw = torch.tensor([1., 1., 1., 1., 1., 1., 2., 2., 0.2, 0.2], dtype=torch.float32)
+            cw = torch.tensor([1., 1., 1., 1., 1., 1., 2., 2., 0.5, 0.5], dtype=torch.float32)
         else:
             # allow list/tuple from config
             cw = torch.tensor(code_weights, dtype=torch.float32)
@@ -170,6 +170,10 @@ class BEVFormerHead(DETRHead):
         # number of yaw bins and where they start in the code vector (if you pack them)
         self.yaw_num_bins = getattr(self, 'yaw_num_bins', 24)
         self.yaw_bin_start = getattr(self, 'yaw_bin_start', 6)
+
+        # velocity head loss (camera-only BEV -> vx, vy)
+        self.loss_vel = nn.SmoothL1Loss(reduction='none')
+        self.loss_vel_weight = 0.25
 
         # debug counters (add inside __init__)
         # set dbg interval to match your training log interval (e.g., 50)
@@ -212,6 +216,13 @@ class BEVFormerHead(DETRHead):
         )
         # --------------------------------------------------------------------------
 
+        # velocity MLP head (camera-only BEV -> vx, vy)
+        vel_branch = nn.Sequential(
+            Linear(self.embed_dims, self.embed_dims),
+            nn.ReLU(inplace=True),
+            Linear(self.embed_dims, 2)  # vx, vy
+        )
+
         def _get_clones(module, N):
             return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
 
@@ -225,12 +236,20 @@ class BEVFormerHead(DETRHead):
             self.reg_branches = _get_clones(reg_branch, num_pred)
             self.yaw_bin_branches = _get_clones(yaw_bin_branch, num_pred)
             self.yaw_res_branches = _get_clones(yaw_res_branch, num_pred)
+            self.vel_branches = _get_clones(vel_branch, num_pred)
         else:
             # IMPORTANT: must deep-copy so each layer has its own head weights
             self.cls_branches = _get_clones(fc_cls, num_pred)
             self.reg_branches = _get_clones(reg_branch, num_pred)
             self.yaw_bin_branches = _get_clones(yaw_bin_branch, num_pred)
             self.yaw_res_branches = _get_clones(yaw_res_branch, num_pred)
+            self.vel_branches = _get_clones(vel_branch, num_pred)
+
+        # Velocity cross-attention: decoder queries attend to camera-only BEV
+        self.vel_cross_attn = nn.ModuleList([
+            nn.MultiheadAttention(self.embed_dims, num_heads=8, batch_first=True)
+            for _ in range(num_pred)
+        ])
 
         if not self.as_two_stage:
             self.bev_embedding = nn.Embedding(
@@ -306,7 +325,7 @@ class BEVFormerHead(DETRHead):
                 bev_lidar=bev_lidar,
             )
 
-        bev_embed, hs, init_reference, inter_references = outputs
+        bev_embed, hs, init_reference, inter_references, bev_embed_cam = outputs
         hs = hs.permute(0, 2, 1, 3)
 
         outputs_classes = []
@@ -314,6 +333,7 @@ class BEVFormerHead(DETRHead):
 
         outputs_yaw_bin_logits = []  # [nb_dec] each is [bs, num_query, num_bins]
         outputs_yaw_res_preds  = []  # [nb_dec] each is [bs, num_query, 2]
+        outputs_vel_preds = []       # [nb_dec] each is [bs, num_query, 2]
 
         eps = 1e-6  # for sincos normalization
 
@@ -369,12 +389,18 @@ class BEVFormerHead(DETRHead):
             outputs_yaw_bin_logits.append(yaw_bin_logits)
             outputs_yaw_res_preds.append(yaw_res_pred)
 
+            # Velocity head: cross-attend decoder queries to camera-only BEV
+            vel_context, _ = self.vel_cross_attn[lvl](hs[lvl], bev_embed_cam, bev_embed_cam)
+            vel_pred = self.vel_branches[lvl](vel_context)  # (bs, num_query, 2)
+            outputs_vel_preds.append(vel_pred)
+
 
         outputs_classes = torch.stack(outputs_classes)
         outputs_coords = torch.stack(outputs_coords)
 
         outputs_yaw_bin_logits = torch.stack(outputs_yaw_bin_logits)  # [nb_dec, bs, num_query, num_bins]
         outputs_yaw_res_preds  = torch.stack(outputs_yaw_res_preds)   # [nb_dec, bs, num_query, 2]
+        outputs_vel_preds = torch.stack(outputs_vel_preds)            # [nb_dec, bs, num_query, 2]
 
         outs = {
             'bev_embed': bev_embed,
@@ -382,6 +408,7 @@ class BEVFormerHead(DETRHead):
             'all_bbox_preds': outputs_coords,
             'all_yaw_bin_logits': outputs_yaw_bin_logits,
             'all_yaw_res_preds': outputs_yaw_res_preds,
+            'all_vel_preds': outputs_vel_preds,
             'enc_cls_scores': None,
             'enc_bbox_preds': None,
         }
@@ -494,6 +521,7 @@ class BEVFormerHead(DETRHead):
                     bbox_preds,
                     yaw_bin_logits,
                     yaw_res_preds,
+                    vel_preds,
                     gt_bboxes_list,
                     gt_labels_list,
                     gt_bboxes_ignore_list=None):
@@ -853,10 +881,24 @@ class BEVFormerHead(DETRHead):
             bbox_preds[isnotnan, :10], normalized_bbox_targets[isnotnan,
                                                                :10], bbox_weights[isnotnan, :10],
             avg_factor=num_total_pos)
+
+        # --- velocity loss (camera-only BEV head) ---
+        # vel_preds: [bs, num_query, 2] -> flatten to [N, 2]
+        vel_preds = vel_preds.reshape(-1, 2)
+        vel_targets = normalized_bbox_targets[isnotnan, 8:10]  # vx, vy
+        vel_weights = bbox_weights[isnotnan, 8:10]
+        if vel_targets.numel() > 0:
+            loss_vel_raw = self.loss_vel(vel_preds[isnotnan], vel_targets)
+            loss_vel = (loss_vel_raw * vel_weights).sum() / vel_weights.sum().clamp_min(1.0)
+            loss_vel = loss_vel * self.loss_vel_weight
+        else:
+            loss_vel = vel_preds.sum() * 0.0
+
         if digit_version(TORCH_VERSION) >= digit_version('1.8'):
             loss_cls = torch.nan_to_num(loss_cls)
             loss_bbox = torch.nan_to_num(loss_bbox)
-        return loss_cls, loss_bbox, loss_yaw_bin, loss_yaw_res
+            loss_vel = torch.nan_to_num(loss_vel)
+        return loss_cls, loss_bbox, loss_yaw_bin, loss_yaw_res, loss_vel
 
 
     @force_fp32(apply_to=('preds_dicts'))
@@ -881,9 +923,11 @@ class BEVFormerHead(DETRHead):
         enc_bbox_preds = preds_dicts['enc_bbox_preds']
         all_yaw_bin_logits = preds_dicts['all_yaw_bin_logits']  # [nb_dec, bs, num_query, num_bins]
         all_yaw_res_preds  = preds_dicts['all_yaw_res_preds']   # [nb_dec, bs, num_query, 2]
+        all_vel_preds      = preds_dicts['all_vel_preds']        # [nb_dec, bs, num_query, 2]
 
         YAW_BIN_W = 0.2
         YAW_RES_W = 0.2
+        VEL_W = 1.0
 
         # --- DEBUG: one-line-per-info, robust bbox & yaw extraction ---
 
@@ -1032,12 +1076,13 @@ class BEVFormerHead(DETRHead):
             gt_bboxes_ignore for _ in range(num_dec_layers)
         ]
 
-        losses_cls, losses_bbox, losses_yaw_bin, losses_yaw_res = multi_apply(
+        losses_cls, losses_bbox, losses_yaw_bin, losses_yaw_res, losses_vel = multi_apply(
             self.loss_single,
             all_cls_scores,         # [nb_dec, bs, nq, C]
             all_bbox_preds,         # [nb_dec, bs, nq, code]
             all_yaw_bin_logits,     # [nb_dec, bs, nq, bins]
             all_yaw_res_preds,      # [nb_dec, bs, nq, 2]
+            all_vel_preds,          # [nb_dec, bs, nq, 2]
             all_gt_bboxes_list,
             all_gt_labels_list,
             all_gt_bboxes_ignore_list
@@ -1062,19 +1107,18 @@ class BEVFormerHead(DETRHead):
 
         loss_dict['loss_yaw_bin'] = losses_yaw_bin[-1] * YAW_BIN_W
         loss_dict['loss_yaw_res'] = losses_yaw_res[-1] * YAW_RES_W
-       
-        #loss_dict['loss_yaw_bin'] = losses_yaw_bin[-1]
-        #loss_dict['loss_yaw_res'] = losses_yaw_res[-1]
+        loss_dict['loss_vel'] = losses_vel[-1] * VEL_W
 
         # loss from other decoder layers (exclude last)
         num_dec_layer = 0
-        for (loss_cls_i, loss_bbox_i, loss_yaw_bin_i, loss_yaw_res_i) in zip(
-                losses_cls[:-1], losses_bbox[:-1], losses_yaw_bin[:-1], losses_yaw_res[:-1]):
+        for (loss_cls_i, loss_bbox_i, loss_yaw_bin_i, loss_yaw_res_i, loss_vel_i) in zip(
+                losses_cls[:-1], losses_bbox[:-1], losses_yaw_bin[:-1], losses_yaw_res[:-1], losses_vel[:-1]):
 
             loss_dict[f'd{num_dec_layer}.loss_cls'] = loss_cls_i
             loss_dict[f'd{num_dec_layer}.loss_bbox'] = loss_bbox_i
             loss_dict[f'd{num_dec_layer}.loss_yaw_bin'] = loss_yaw_bin_i * YAW_BIN_W
             loss_dict[f'd{num_dec_layer}.loss_yaw_res'] = loss_yaw_res_i * YAW_RES_W
+            loss_dict[f'd{num_dec_layer}.loss_vel'] = loss_vel_i * VEL_W
             num_dec_layer += 1
 
         return loss_dict
@@ -1173,7 +1217,7 @@ class BEVFormerHead_GroupDETR(BEVFormerHead):
                 prev_bev=prev_bev
         )
 
-        bev_embed, hs, init_reference, inter_references = outputs
+        bev_embed, hs, init_reference, inter_references, _bev_embed_cam = outputs
         hs = hs.permute(0, 2, 1, 3)
         outputs_classes = []
         outputs_coords = []
