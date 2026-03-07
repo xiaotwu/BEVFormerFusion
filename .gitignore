@@ -1,0 +1,10 @@
+v1.0-mini.tgz
+data/
+test/
+val/
+work_dirs/
+work_dirs/**/tf_logs
+work_dirs/**/*.log
+work_dirs/**/*.log.json
+**/__pycache__/
+*.pyc
