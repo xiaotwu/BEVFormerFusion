@@ -1,0 +1,48 @@
+flowchart TD
+  %% Inputs
+  CAM_IN["Camera (6 views)"] --> CAM_BACK["ResNet50 + FPN"] --> CAM_MS["Multi-scale features"] --> IMG_FEATS["img_feats<br>(4 levels)"]
+
+  LIDAR_IN["LiDAR point cloud"] --> PP["PointPillars<br>(B,64,512,512)"] --> LPROJ["Conv2d + interpolate<br>LayerNorm + alpha scaling"] --> L_TOK["lidar_bev_tokens<br>(B, HW, 256)"]
+
+  %% Merge into encoder-side fusion
+  IMG_FEATS --> ENC
+  L_TOK --> ENC
+
+  subgraph ENC["ENCODER-SIDE FUSION<br>BEV Encoder (4 layers)"]
+    direction TB
+    TSA["1) TSA: temporal self-attn<br>(current BEV vs prev_bev)"]
+    CAM_SCA["2) Camera SCA: deformable cross-attn<br>to multi-scale img_feats"]
+    LID_SCA["3) LiDAR SCA: deformable cross-attn<br>to lidar_bev_tokens"]
+    BLEND["4) Blend: cam_out * w + lidar_out * (1-w)<br>w learnable, init 0.5"]
+    FFN["5) FFN"]
+    TSA --> CAM_SCA --> LID_SCA --> BLEND --> FFN --> BEV_EMB["bev_embed<br>(encoder output, includes LiDAR)"]
+  end
+
+  %% Clone for velocity head
+  BEV_EMB --> CLONE["bev_embed_cam = bev_embed.clone()<br>(used for velocity head)"]
+
+  %% Decoder-side fusion
+  BEV_EMB --> DEC_FUSION
+  L_TOK --> DEC_FUSION
+
+  subgraph DEC_FUSION["DECODER-SIDE FUSION"]
+    direction TB
+    CONCAT["concat([bev_embed, lidar_tokens])"] --> LINLN["Linear(2C, C) + LN"] --> FUSED_BEV["fused BEV"]
+  end
+
+  %% Decoder
+  FUSED_BEV --> DEC
+
+  subgraph DEC["Transformer Decoder<br>(6 layers, 450 queries)"]
+    direction TB
+    DEC_CORE["Self-attn + cross-attn<br>to fused BEV"] --> HS["hs[lvl]<br>(decoder queries)"]
+  end
+
+  %% Heads
+  HS --> CLS["cls_branch<br>(10 cls)"]
+  HS --> REG["reg_branch<br>(bbox 10-dim)"]
+  REG --> YBIN["yaw_bin<br>(24 bins)"]
+  REG --> YRES["yaw_res<br>(sin, cos residual)"]
+
+  HS --> VEL_XATTN["vel_cross_attn(hs, bev_embed_cam)"] --> VEL["vel_branch -> (vx, vy)"]
+  CLONE --> VEL_XATTN
