@@ -27,7 +27,7 @@ Camera (6 views)                         LiDAR point cloud
 |  For each layer:                                                  |
 |    1. TSA: temporal self-attention (current BEV vs prev_bev)      |
 |    2. Camera SCA: deformable cross-attn to multi-scale img_feats  |
-|    3. LiDAR SCA: deformable cross-attn to lidar_bev_tokens       |
+|    3. LiDAR SCA: deformable cross-attn to lidar_bev_tokens        |
 |    4. Blend: query = cam_out * w + lidar_out * (1-w)              |
 |              (w = learnable softmax weight, init 0.5)             |
 |    5. FFN                                                         |
@@ -40,10 +40,10 @@ Camera (6 views)                         LiDAR point cloud
      |                              |
      v    DECODER-SIDE FUSION       |
 +-------------------------------+   |
-|  LiDAR BEV re-projected      |   |
-|  concat([bev_embed,          |   |
+|  LiDAR BEV re-projected       |   |
+|  concat([bev_embed,           |   |
 |          lidar_tokens])       |   |
-|  --> Linear(2C, C) + LN      |   |
+|  --> Linear(2C, C) + LN       |   |
 +-------------------------------+   |
      |                              |
      v                              v
@@ -58,11 +58,11 @@ Camera (6 views)                         LiDAR point cloud
   hs[lvl]                      bev_embed_cam
   (decoder queries)             (camera-only BEV)
      |                              |
-     +----------+------------------+
-     |          |                  |
-     v          v                  v
+     +----------+-------------------+
+     |          |                   |
+     v          v                   v
   cls_branch  reg_branch      vel_cross_attn(hs, bev_embed_cam)
-  (10 cls)    (bbox 10-dim)        |
+  (10 cls)    (bbox 10-dim)         |
                                vel_branch --> (vx, vy)
      |          |
      v          v
@@ -114,9 +114,9 @@ Training runs in **full FP32 precision** to maximize accuracy. All forward pass 
 | Metric | Value |
 |--------|-------|
 | Precision | FP32 (full) |
-| Speed | ~1.73 s/iter |
+| Speed | ~0.39 s/iter |
 | GPU memory | ~8.9 GB |
-| 200K iterations | ~4 days (RTX 5070 Ti 16GB) |
+| 100K iterations | ~3 days (RTX 5070 Ti 16GB) |
 
 ## Quick Start
 
