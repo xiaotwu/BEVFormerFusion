@@ -130,12 +130,12 @@ graph LR
 
 | Parameter | Value |
 |-----------|-------|
-| Total iterations | 200,000 |
+| Total iterations | 100,000 |
 | Precision | FP32 (full) |
 | Batch size | 1 per GPU |
 | Workers per GPU | 6 |
-| Eval interval | every 20K iterations |
-| Checkpoint interval | every 20K iterations (keep 5) |
+| Eval interval | every 10K iterations |
+| Checkpoint interval | every 10K iterations (keep 5) |
 | Speed | ~0.39 s/iter |
 | GPU memory | ~8.9 GB |
 

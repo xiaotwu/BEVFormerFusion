@@ -91,22 +91,7 @@ graph TD
 
 ## Documentation
 
-Comprehensive technical documentation is organized as a book in the [`doc/`](doc/) folder:
-
-| Chapter | Title | Content |
-|---------|-------|---------|
-| [00](doc/00-overview.md) | System Overview | Architecture diagrams, design philosophy, chapter guide |
-| [01](doc/01-data-pipeline.md) | Data Pipeline | nuScenes dataset, temporal queue, CAN bus, transforms |
-| [02](doc/02-camera-branch.md) | Camera Branch | ResNet50 + FPN feature extraction |
-| [03](doc/03-lidar-branch.md) | LiDAR Branch | PointPillars: voxelization, pillar features, BEV scatter |
-| [04](doc/04-encoder-fusion.md) | Encoder-Side Fusion | TSA, dual SCA, learnable blend weights |
-| [05](doc/05-decoder-fusion.md) | Decoder-Side Fusion | Concat+linear fusion, identity initialization |
-| [06](doc/06-transformer-decoder.md) | Transformer Decoder | 6-layer decoder, reference point refinement |
-| [07](doc/07-detection-heads.md) | Detection Heads | Classification, bbox, yaw bin/res, velocity head |
-| [08](doc/08-loss-and-training.md) | Loss & Training | 5 loss functions, gradient isolation, training config |
-| [09](doc/09-inference.md) | Inference & Decoding | NMS-free decoding, temporal test-time processing |
-| [A](doc/appendix-tensor-shapes.md) | Tensor Shapes | Complete tensor shape reference |
-| [B](doc/appendix-file-map.md) | File Map | Key files, class hierarchy |
+[BEVFormerFusion](https://xiaotwu.github.io/BEVFormerFusion)
 
 ## Quick Start
 
@@ -126,7 +111,7 @@ python tools/train.py projects/configs/bevformer/bevformer_project.py
 ```bash
 python tools/test.py \
     projects/configs/bevformer/bevformer_project.py \
-    work_dirs/bevformer_project/iter_200000.pth \
+    work_dirs/bevformer_project/iter_100000.pth \
     --eval bbox
 ```
 
@@ -135,7 +120,7 @@ python tools/test.py \
 ```bash
 python tools/test.py \
     projects/configs/bevformer/bevformer_project.py \
-    work_dirs/bevformer_project/iter_200000.pth \
+    work_dirs/bevformer_project/iter_100000.pth \
     --eval bbox \
     --viz-bev --viz-num 20 --viz-score-thr 0.2 \
     --viz-outdir work_dirs/bevformer_project/bev_viz
@@ -159,7 +144,7 @@ tensorboard --logdir work_dirs/bevformer_project/tf_logs
 
 | Parameter | Value |
 |-----------|-------|
-| Iterations | 200,000 |
+| Iterations | 100,000 |
 | Precision | FP32 |
 | Optimizer | AdamW, lr=2e-4, weight_decay=0.01 |
 | LR schedule | Cosine annealing, warmup=10K iters |
@@ -174,17 +159,6 @@ See [Chapter 8](doc/08-loss-and-training.md) for full training details.
 ## Dataset
 
 nuScenes with temporal annotations. 10 classes: car, truck, bus, trailer, construction_vehicle, pedestrian, motorcycle, bicycle, traffic_cone, barrier.
-
-## Documentation Site
-
-Docs are published to GitHub Pages via MkDocs. To preview locally:
-
-```bash
-pip install mkdocs-material
-mkdocs serve
-```
-
-Source lives in `doc/`; navigation is defined in `mkdocs.yml`.
 
 ## Requirements
 

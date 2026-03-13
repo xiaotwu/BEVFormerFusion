@@ -366,9 +366,9 @@ lr_config = dict(
     warmup='linear', warmup_iters=10000, warmup_ratio=1.0/1000,
     min_lr_ratio=1e-3)
 
-evaluation = dict(interval=20000, pipeline=test_pipeline)
+evaluation = dict(interval=10000, pipeline=test_pipeline)
 
-runner = dict(type='IterBasedRunner', max_iters=200000)
+runner = dict(type='IterBasedRunner', max_iters=100000)
 
 log_config = dict(
     interval=50,
@@ -382,4 +382,4 @@ custom_hooks = [
     dict(type='EnsureTimeDataHook', priority='LOW'),
 ]
 
-checkpoint_config = dict(interval=20000, by_epoch=False, max_keep_ckpts=5)
+checkpoint_config = dict(interval=10000, by_epoch=False, max_keep_ckpts=5)
