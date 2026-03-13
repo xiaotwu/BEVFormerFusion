@@ -11,6 +11,7 @@
 [Ch 5 -- Decoder Fusion](05-decoder-fusion.md) |
 [Ch 6 -- Decoder](06-transformer-decoder.md) |
 [Ch 7 -- Heads](07-detection-heads.md) |
+[Ch 7a -- Velocity Head](07a-velocity-head.md) |
 [Ch 8 -- Loss & Training](08-loss-and-training.md) |
 [Ch 9 -- Inference](09-inference.md) |
 [Appendix A](appendix-tensor-shapes.md) |
@@ -75,7 +76,7 @@ graph TD
     class DECODER,VEL dec
 ```
 
-The clone step is critical: `bev_embed_cam` captures the BEV **before** any decoder-side LiDAR mixing. The velocity head cross-attends to this camera-only copy to preserve the temporal motion signal that would otherwise be diluted by single-frame LiDAR features.
+The clone step is critical: `bev_embed_cam` captures the BEV **before** any decoder-side LiDAR mixing. The velocity head cross-attends to this camera-only copy to preserve the temporal motion signal that would otherwise be diluted by single-frame LiDAR features. See [Chapter 7a -- Velocity Head](07a-velocity-head.md) for the full architecture.
 
 ---
 

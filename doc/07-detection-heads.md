@@ -1,6 +1,6 @@
 # Chapter 7: Detection Heads
 
-[00 Overview](00-overview.md) | [01 Data Pipeline](01-data-pipeline.md) | [02 Camera Branch](02-camera-branch.md) | [03 LiDAR Branch](03-lidar-branch.md) | [04 Encoder Fusion](04-encoder-fusion.md) | [05 Decoder Fusion](05-decoder-fusion.md) | [06 Decoder](06-transformer-decoder.md) | **07 Detection Heads** | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix A: Tensors](appendix-tensor-shapes.md) | [Appendix B: Files](appendix-file-map.md)
+[00 Overview](00-overview.md) | [01 Data Pipeline](01-data-pipeline.md) | [02 Camera Branch](02-camera-branch.md) | [03 LiDAR Branch](03-lidar-branch.md) | [04 Encoder Fusion](04-encoder-fusion.md) | [05 Decoder Fusion](05-decoder-fusion.md) | [06 Decoder](06-transformer-decoder.md) | **07 Detection Heads** | [07a Velocity Head](07a-velocity-head.md) | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix A: Tensors](appendix-tensor-shapes.md) | [Appendix B: Files](appendix-file-map.md)
 
 ---
 
@@ -121,60 +121,23 @@ This prevents the sin/cos pair from drifting off the unit circle during early tr
 
 ## Velocity Head
 
-The velocity head is the key innovation for maintaining accurate motion prediction despite LiDAR fusion.
-
-### The Temporal Dilution Problem
-
-```mermaid
-graph LR
-    subgraph "Temporal Self-Attention"
-        PREV["Previous BEV<br/>(frame t-1)"] --> TSA["TSA compares<br/>current vs previous"]
-        CUR["Current BEV<br/>(frame t)"] --> TSA
-        TSA --> MOTION["Motion Signal<br/>encoded in BEV"]
-    end
-
-    subgraph "The Problem"
-        MOTION --> BLEND["Blended with<br/>static LiDAR features"]
-        LIDAR["LiDAR BEV<br/>(single frame,<br/>no temporal info)"] --> BLEND
-        BLEND --> DILUTED["Diluted<br/>Motion Signal"]
-    end
-
-    style MOTION fill:#d4edda,stroke:#28a745
-    style DILUTED fill:#f8d7da,stroke:#dc3545
-    style LIDAR fill:#fff3e0,stroke:#f5a623
-```
-
-### The Solution: Camera-Only Cross-Attention
+The velocity head estimates per-object velocity by cross-attending decoder queries to a BEV snapshot cloned before decoder-side LiDAR fusion. This preserves the temporal motion signal from TSA that would otherwise be diluted by static LiDAR features.
 
 ```mermaid
 graph TD
-    subgraph "Velocity Head"
-        DQ["Decoder Query<br/>(object representation)"]
-        CAM["Camera-Only BEV<br/>(cloned BEFORE<br/>LiDAR fusion)"]
+    DQ["Decoder Query"]
+    CAM["Camera-Only BEV<br/>(cloned before LiDAR fusion)"]
 
-        DQ -->|"Q"| MHA["Multi-Head Attention<br/>8 heads"]
-        CAM -->|"K, V"| MHA
-
-        MHA --> CTX["Velocity Context<br/>(motion-aware features)"]
-        CTX --> MLP["MLP: 256 → 256 → 2"]
-        MLP --> VEL["Velocity (vx, vy)"]
-    end
-
-    subgraph "Why Camera-Only BEV?"
-        P1["Preserves full temporal signal from TSA"]
-        P2["No dilution from static LiDAR geometry"]
-        P3["Each query selectively attends to<br/>motion-relevant BEV regions"]
-    end
+    DQ -->|"Q"| MHA["Multi-Head Attention<br/>8 heads"]
+    CAM -->|"K, V"| MHA
+    MHA --> MLP["MLP: 256 → 256 → 2"]
+    MLP --> VEL["Velocity (vx, vy)"]
 
     style CAM fill:#d4edda,stroke:#28a745
     style VEL fill:#d4edda,stroke:#28a745
 ```
 
-**Key design choices**:
-
-1. **Camera-only BEV**: `bev_embed_cam` is cloned before decoder-side LiDAR fusion, preserving the full temporal motion signal from TSA
-2. **Full attention** (not deformable): `nn.MultiheadAttention` allows each query to attend over the entire BEV grid, important for capturing motion patterns that may span large regions
-3. **Per-layer**: One cross-attention + MLP per decoder layer, receiving the progressively refined query
+For the complete architecture, the temporal dilution problem, design rationale, and training/inference details, see **[Chapter 7a -- Velocity Head](07a-velocity-head.md)**.
 
 ---
 
@@ -232,4 +195,4 @@ By zeroing `bbox_weights` at indices 6-9, the regression head receives no gradie
 
 ---
 
-[Next: Chapter 8 - Loss Functions & Training](08-loss-and-training.md)
+*Next: [Chapter 7a -- Velocity Head](07a-velocity-head.md)* | [Chapter 8 -- Loss & Training](08-loss-and-training.md)

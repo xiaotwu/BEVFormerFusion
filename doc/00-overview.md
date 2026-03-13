@@ -13,6 +13,7 @@
 [Ch 5 -- Decoder Fusion](05-decoder-fusion.md) |
 [Ch 6 -- Decoder](06-transformer-decoder.md) |
 [Ch 7 -- Heads](07-detection-heads.md) |
+[Ch 7a -- Velocity Head](07a-velocity-head.md) |
 [Ch 8 -- Loss & Training](08-loss-and-training.md) |
 [Ch 9 -- Inference](09-inference.md) |
 [Appendix A](appendix-tensor-shapes.md) |
@@ -246,10 +247,11 @@ Yaw angle is decomposed into a classification bin and a regression residual, eac
 | **3** | BEV Encoder | Temporal self-attention, spatial cross-attention, and BEV grid construction. |
 | **4** | Encoder-Side Fusion | Dual SCA branches, learnable blending weight, and training dynamics. |
 | **5** | Decoder-Side Fusion | Concatenation, linear projection, and how decoder queries consume fused BEV. |
-| **6** | Prediction Heads | Classification, bbox regression, yaw (bin + residual), and velocity heads. |
-| **7** | Loss Functions | Per-head losses, weighting strategy, and Hungarian matching. |
-| **8** | Training Pipeline | Config files, optimizer settings, augmentation, and distributed training. |
-| **9** | Inference | Model loading, BEV cache, post-processing, and visualization. |
+| **6** | Transformer Decoder | 6-layer decoder, reference point refinement, and object queries. |
+| **7** | Detection Heads | Classification, bbox regression, yaw (bin + residual), and velocity heads. |
+| **7a** | Velocity Head | Dedicated velocity prediction via camera-only BEV cross-attention. |
+| **8** | Loss & Training | Per-head losses, weighting strategy, Hungarian matching, and training config. |
+| **9** | Inference | NMS-free decoding, temporal test-time processing, and post-processing. |
 | **A** | Tensor Shapes | Reference table of key tensor dimensions at every stage. |
 | **B** | File Map | Directory structure and mapping from concepts to source files. |
 

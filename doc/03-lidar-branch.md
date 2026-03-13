@@ -1,6 +1,6 @@
 # Chapter 3: LiDAR Branch (PointPillars)
 
-[00 Overview](00-overview.md) | [01 Data Pipeline](01-data-pipeline.md) | [02 Camera](02-camera-branch.md) | **03 LiDAR Branch** | [04 Encoder Fusion](04-encoder-fusion.md) | [05 Decoder Fusion](05-decoder-fusion.md) | [06 Decoder](06-transformer-decoder.md) | [07 Heads](07-detection-heads.md) | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix A](appendix-tensor-shapes.md) | [Appendix B](appendix-file-map.md)
+[00 Overview](00-overview.md) | [01 Data Pipeline](01-data-pipeline.md) | [02 Camera](02-camera-branch.md) | **03 LiDAR Branch** | [04 Encoder Fusion](04-encoder-fusion.md) | [05 Decoder Fusion](05-decoder-fusion.md) | [06 Decoder](06-transformer-decoder.md) | [07 Heads](07-detection-heads.md) | [07a Velocity Head](07a-velocity-head.md) | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix A](appendix-tensor-shapes.md) | [Appendix B](appendix-file-map.md)
 
 ---
 

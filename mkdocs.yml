@@ -37,6 +37,7 @@ nav:
   - Decoder Fusion: 05-decoder-fusion.md
   - Transformer Decoder: 06-transformer-decoder.md
   - Detection Heads: 07-detection-heads.md
+  - Velocity Head: 07a-velocity-head.md
   - Loss & Training: 08-loss-and-training.md
   - Inference: 09-inference.md
   - Appendices:

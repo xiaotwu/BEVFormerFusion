@@ -13,6 +13,7 @@
 [Ch 5 -- Decoder Fusion](05-decoder-fusion.md) |
 [Ch 6 -- Decoder](06-transformer-decoder.md) |
 [Ch 7 -- Heads](07-detection-heads.md) |
+[Ch 7a -- Velocity Head](07a-velocity-head.md) |
 [Ch 8 -- Loss & Training](08-loss-and-training.md) |
 [Ch 9 -- Inference](09-inference.md) |
 [Appendix A](appendix-tensor-shapes.md) |
@@ -348,6 +349,7 @@ All paths are relative to the repository root under `projects/mmdet3d_plugin/bev
 [Ch 5 -- Decoder Fusion](05-decoder-fusion.md) |
 [Ch 6 -- Decoder](06-transformer-decoder.md) |
 [Ch 7 -- Heads](07-detection-heads.md) |
+[Ch 7a -- Velocity Head](07a-velocity-head.md) |
 [Ch 8 -- Loss & Training](08-loss-and-training.md) |
 [Ch 9 -- Inference](09-inference.md) |
 [Appendix A](appendix-tensor-shapes.md) |
