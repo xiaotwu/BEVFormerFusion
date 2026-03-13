@@ -4,17 +4,17 @@
 
 **Navigation**:
 [Ch 0 -- Overview](00-overview.md) |
-[Ch 1](01-data-flow.md) |
-[Ch 2](02-backbone-neck.md) |
-[Ch 3](03-bev-encoder.md) |
-[Ch 4](04-encoder-fusion.md) |
-[Ch 5](05-decoder-fusion.md) |
-[Ch 6](06-prediction-heads.md) |
-[Ch 7](07-loss-functions.md) |
-[Ch 8](08-training-pipeline.md) |
-[Ch 9](09-inference.md) |
-[Appendix A -- Tensor Shapes](appendix-tensor-shapes.md) |
-[Appendix B -- File Map](appendix-file-map.md)
+[Ch 1 -- Data Pipeline](01-data-pipeline.md) |
+[Ch 2 -- Camera](02-camera-branch.md) |
+[Ch 3 -- LiDAR](03-lidar-branch.md) |
+[Ch 4 -- Encoder Fusion](04-encoder-fusion.md) |
+[Ch 5 -- Decoder Fusion](05-decoder-fusion.md) |
+[Ch 6 -- Decoder](06-transformer-decoder.md) |
+[Ch 7 -- Heads](07-detection-heads.md) |
+[Ch 8 -- Loss & Training](08-loss-and-training.md) |
+[Ch 9 -- Inference](09-inference.md) |
+[Appendix A](appendix-tensor-shapes.md) |
+[Appendix B](appendix-file-map.md)
 
 ---
 
@@ -218,4 +218,4 @@ Together, the two stages give the model access to LiDAR information at two level
 
 ---
 
-*Previous: [Chapter 4 -- Encoder-Side Fusion](04-encoder-fusion.md)* | *Next: [Chapter 6 -- Prediction Heads](06-prediction-heads.md)*
+*Previous: [Chapter 4 -- Encoder-Side Fusion](04-encoder-fusion.md)* | *Next: [Chapter 6 -- Transformer Decoder](06-transformer-decoder.md)*

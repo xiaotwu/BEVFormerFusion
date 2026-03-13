@@ -1,0 +1,62 @@
+site_name: BEVFormerFusion Docs
+site_description: Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer
+docs_dir: doc
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+
+nav:
+  - Architecture Overview: 00-overview.md
+  - Data Pipeline: 01-data-pipeline.md
+  - Camera Branch: 02-camera-branch.md
+  - LiDAR Branch: 03-lidar-branch.md
+  - Encoder Fusion: 04-encoder-fusion.md
+  - Decoder Fusion: 05-decoder-fusion.md
+  - Transformer Decoder: 06-transformer-decoder.md
+  - Detection Heads: 07-detection-heads.md
+  - Loss & Training: 08-loss-and-training.md
+  - Inference: 09-inference.md
+  - Appendices:
+      - Tensor Shapes: appendix-tensor-shapes.md
+      - File Map: appendix-file-map.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html

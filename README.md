@@ -175,6 +175,17 @@ See [Chapter 8](doc/08-loss-and-training.md) for full training details.
 
 nuScenes with temporal annotations. 10 classes: car, truck, bus, trailer, construction_vehicle, pedestrian, motorcycle, bicycle, traffic_cone, barrier.
 
+## Documentation Site
+
+Docs are published to GitHub Pages via MkDocs. To preview locally:
+
+```bash
+pip install mkdocs-material
+mkdocs serve
+```
+
+Source lives in `doc/`; navigation is defined in `mkdocs.yml`.
+
 ## Requirements
 
 - PyTorch 2.x with CUDA

@@ -1,6 +1,6 @@
 # Chapter 2: Camera Branch
 
-| [00 Overview](00-overview.md) | [01 Data Loading](01-data-loading.md) | **[02 Camera Branch](02-camera-branch.md)** | [03 LiDAR Branch](03-lidar-branch.md) | [04 Encoder](04-encoder.md) | [05 Decoder](05-decoder.md) | [06 Encoder-Side Fusion](06-encoder-side-fusion.md) | [07 Decoder-Side Fusion](07-decoder-side-fusion.md) | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix: Tensor Shapes](appendix-tensor-shapes.md) | [Appendix: File Map](appendix-file-map.md) |
+[00 Overview](00-overview.md) | [01 Data Pipeline](01-data-pipeline.md) | **02 Camera Branch** | [03 LiDAR](03-lidar-branch.md) | [04 Encoder Fusion](04-encoder-fusion.md) | [05 Decoder Fusion](05-decoder-fusion.md) | [06 Decoder](06-transformer-decoder.md) | [07 Heads](07-detection-heads.md) | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix A](appendix-tensor-shapes.md) | [Appendix B](appendix-file-map.md)
 
 ---
 

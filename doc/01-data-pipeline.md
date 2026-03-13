@@ -1,6 +1,6 @@
 # Chapter 1: Data Pipeline
 
-> [00 Overview](00-overview.md) | **[01 Data Pipeline](01-data-pipeline.md)** | [02 BEV Encoder](02-bev-encoder.md) | [03 Temporal Self-Attention](03-temporal-self-attention.md) | [04 Spatial Cross-Attention](04-spatial-cross-attention.md) | [05 LiDAR Encoder Fusion](05-lidar-encoder-fusion.md) | [06 Decoder](06-decoder.md) | [07 LiDAR Decoder Fusion](07-lidar-decoder-fusion.md) | [08 Detection Head](08-detection-head.md) | [09 Training & Evaluation](09-training-evaluation.md) | [Appendix: Tensor Shapes](appendix-tensor-shapes.md) | [Appendix: File Map](appendix-file-map.md)
+> [00 Overview](00-overview.md) | **01 Data Pipeline** | [02 Camera](02-camera-branch.md) | [03 LiDAR](03-lidar-branch.md) | [04 Encoder Fusion](04-encoder-fusion.md) | [05 Decoder Fusion](05-decoder-fusion.md) | [06 Decoder](06-transformer-decoder.md) | [07 Heads](07-detection-heads.md) | [08 Loss & Training](08-loss-and-training.md) | [09 Inference](09-inference.md) | [Appendix A](appendix-tensor-shapes.md) | [Appendix B](appendix-file-map.md)
 
 ---
 
@@ -178,4 +178,4 @@ When `RandomScaleImageMultiViewImage` resizes the images, it pre-multiplies a sc
 
 ---
 
-**Next:** [Chapter 2: BEV Encoder](02-bev-encoder.md) -- how the model builds a bird's-eye-view representation from multi-view image features.
+**Next:** [Chapter 2: Camera Branch](02-camera-branch.md) -- how multi-view images are processed through ResNet-50 and FPN.
