@@ -16,33 +16,33 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Clone wiki repo
+        env:
+          WIKI_PAT: ${{ secrets.BFF_WIKI_SYNC }}
         run: |
-          git clone "https://x-access-token:${{ secrets.BFF_WIKI_SYNC }}@github.com/${{ github.repository }}.wiki.git" wiki
+          set -euxo pipefail
+          rm -rf wiki
+          git clone "https://x-access-token:${WIKI_PAT}@github.com/${{ github.repository }}.wiki.git" wiki
 
       - name: Sync doc/ to wiki (do NOT overwrite Home.md)
         run: |
-          # 1) Sync doc/ to wiki root, excluding Home.md
+          set -euxo pipefail
           rsync -av --delete \
             --exclude 'Home.md' \
             doc/ wiki/
-
-          # 2) Optional: Ensure assets/ exists (rsync will copy it over, this is just a safety net)
           mkdir -p wiki/assets
 
       - name: (Optional) Generate _Sidebar.md from doc/ filenames
         run: |
-          # If you have already written _Sidebar.md and don't want it to be overwritten, delete this entire step
+          set -euxo pipefail
           python3 - <<'PY'
           import os, re
 
           wiki_dir = "wiki"
-          # Only collect md files in the wiki root (excluding Home and Sidebar)
           md_files = []
           for f in os.listdir(wiki_dir):
             if f.endswith(".md") and f not in ("Home.md", "_Sidebar.md", "_Footer.md"):
               md_files.append(f)
 
-          # Sort: first by 00-xx / 01-xx ..., then appendices
           def sort_key(name: str):
             m = re.match(r"^(\d+)-", name)
             if m:
@@ -54,16 +54,11 @@ jobs:
           md_files.sort(key=sort_key)
 
           lines = []
-          # Main chapters
           for f in md_files:
-            page = f[:-3]  # remove .md
-            # Display name: replace '-' with space and do some title casing (you can adjust as needed)
+            page = f[:-3]
             title = page.replace("-", " ")
-            # appendix goes at the end with a separator
             if f.startswith("appendix") and "---" not in lines:
-              lines.append("")
-              lines.append("---")
-              lines.append("")
+              lines += ["", "---", ""]
             lines.append(f"- [[{title}|{page}]]")
 
           content = "\n".join(lines).strip() + "\n"
@@ -74,17 +69,18 @@ jobs:
 
       - name: Commit & push changes
         run: |
+          set -euxo pipefail
           cd wiki
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add -A
 
-          # If there are no changes to commit, exit gracefully
           if git diff --cached --quiet; then
             echo "No changes to sync."
             exit 0
           fi
 
           git commit -m "Sync doc/ to wiki"
-          git push
+
+          git push origin HEAD:master

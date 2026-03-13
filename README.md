@@ -10,7 +10,84 @@ BEVFormerFusion extends BEVFormer with three innovations:
 - **Decoder-Side Fusion** -- After the encoder, LiDAR features are concatenated and projected with the BEV embedding before entering the decoder
 - **Velocity Head** -- A dedicated cross-attention head that attends to camera-only BEV features (before LiDAR fusion) to predict object velocity, solving the temporal signal dilution problem
 
-![Architecture](doc/assets/Fusion_Architecture.png)
+```mermaid
+graph TD
+    %% ── Inputs ──
+    IMG["Multi-View Images<br/>(6 cameras)"]
+    PTS["Point Cloud"]
+
+    %% ── Backbones ──
+    RES["ResNet-50 + FPN"]
+    PP["PointPillars"]
+
+    IMG --> RES
+    PTS --> PP
+
+    RES --> |"Multi-Scale Features"| CAM_SCA
+    PP  --> |"LiDAR BEV Features"| LID_PROJ["1x1 Conv Projection"]
+
+    %% ── Encoder (x4 layers) ──
+    subgraph ENC["Encoder Layer  x 4"]
+        direction TB
+        TSA["Temporal Self-Attention<br/>with History BEV"]
+        CAM_SCA["Camera Spatial<br/>Cross-Attention"]
+        LID_SCA["LiDAR Deformable<br/>Cross-Attention"]
+        BLEND["Learnable Blend<br/>w * Camera + (1-w) * LiDAR"]
+        FFN_E["Feed-Forward Network"]
+
+        TSA --> CAM_SCA
+        TSA --> LID_SCA
+        CAM_SCA --> BLEND
+        LID_SCA --> BLEND
+        BLEND --> FFN_E
+    end
+
+    LID_PROJ --> |"(a) Encoder Fusion"| LID_SCA
+    PREV["History BEV<br/>B(t-1)"] -.-> TSA
+
+    FFN_E --> BEV_CAM["Camera-Only BEV"]
+    FFN_E --> CONCAT
+
+    %% ── Decoder Fusion ──
+    LID_PROJ --> |"(b) Decoder Fusion"| CONCAT["Concat + Linear<br/>Projection"]
+    CONCAT --> BEV_FUSED["Fused BEV"]
+
+    %% ── Decoder (x6 layers) ──
+    subgraph DEC["Decoder Layer  x 6"]
+        direction TB
+        SELF_A["Query Self-Attention"]
+        CROSS_A["Deformable Cross-Attention<br/>to Fused BEV"]
+        FFN_D["Feed-Forward Network"]
+        REFINE["Reference Point Refinement"]
+        SELF_A --> CROSS_A --> FFN_D --> REFINE
+    end
+
+    BEV_FUSED --> CROSS_A
+    QUERIES["Object Queries<br/>(450)"] --> SELF_A
+
+    %% ── Heads ──
+    REFINE --> CLS["Classification<br/>Head"]
+    REFINE --> BOX["BBox Regression<br/>Head"]
+    REFINE --> YAW["Yaw Bin/Residual<br/>Head"]
+    REFINE --> VEL_XA["Velocity Cross-Attention<br/>→ Camera-Only BEV"]
+    BEV_CAM -.-> |"temporal signal<br/>preserved"| VEL_XA
+    VEL_XA --> VEL["Velocity Head<br/>(vx, vy)"]
+
+    %% ── Styles ──
+    classDef input fill:#e8f4fd,stroke:#4a90d9
+    classDef cam fill:#d4edda,stroke:#28a745
+    classDef lid fill:#fff3cd,stroke:#ffc107
+    classDef fuse fill:#f8d7da,stroke:#dc3545
+    classDef head fill:#e2d9f3,stroke:#6f42c1
+    classDef dec fill:#d1ecf1,stroke:#17a2b8
+
+    class IMG,PTS,PREV,QUERIES input
+    class RES,CAM_SCA,TSA,BEV_CAM cam
+    class PP,LID_PROJ,LID_SCA lid
+    class BLEND,CONCAT,BEV_FUSED,VEL_XA fuse
+    class CLS,BOX,YAW,VEL head
+    class SELF_A,CROSS_A,FFN_D,REFINE dec
+```
 
 ## Documentation
 
