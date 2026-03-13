@@ -1,0 +1,1389 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer">
+      
+      
+      
+      
+        <link rel="prev" href="../07-detection-heads/">
+      
+      
+        <link rel="next" href="../09-inference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Loss & Training - BEVFormerFusion Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chapter-8-loss-functions-training" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BEVFormerFusion Docs" class="md-header__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BEVFormerFusion Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Loss & Training
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BEVFormerFusion Docs" class="md-nav__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BEVFormerFusion Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-data-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-camera-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-lidar-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiDAR Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-encoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-decoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-transformer-decoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Decoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-detection-heads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection Heads
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loss & Training
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loss & Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loss-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss Components
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loss-computation-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss Computation Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loss Computation Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gradient-isolation-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradient Isolation Detail
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hungarian-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hungarian Matching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auxiliary-losses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary Losses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optimizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#learning-rate-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Rate Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#general-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temporal-bev-memory-during-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal BEV Memory During Training
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendices
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendices
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-tensor-shapes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor Shapes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-file-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loss-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss Components
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loss-computation-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss Computation Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loss Computation Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gradient-isolation-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradient Isolation Detail
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hungarian-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hungarian Matching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auxiliary-losses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary Losses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optimizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimizer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#learning-rate-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Rate Schedule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#general-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temporal-bev-memory-during-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal BEV Memory During Training
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chapter-8-loss-functions-training">Chapter 8: Loss Functions &amp; Training<a class="headerlink" href="#chapter-8-loss-functions-training" title="Permanent link">&para;</a></h1>
+<p><a href="../00-overview/">00 Overview</a> | <a href="../01-data-pipeline/">01 Data Pipeline</a> | <a href="../02-camera-branch/">02 Camera Branch</a> | <a href="../03-lidar-branch/">03 LiDAR Branch</a> | <a href="../04-encoder-fusion/">04 Encoder Fusion</a> | <a href="../05-decoder-fusion/">05 Decoder Fusion</a> | <a href="../06-transformer-decoder/">06 Decoder</a> | <a href="../07-detection-heads/">07 Detection Heads</a> | <strong>08 Loss &amp; Training</strong> | <a href="../09-inference/">09 Inference</a> | <a href="../appendix-tensor-shapes/">Appendix A: Tensors</a> | <a href="../appendix-file-map/">Appendix B: Files</a></p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Training combines five loss functions with Hungarian matching, auxiliary decoder losses, and careful gradient isolation. The system runs in full FP32 precision for maximum numerical stability.</p>
+<hr />
+<h2 id="loss-components">Loss Components<a class="headerlink" href="#loss-components" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Loss</th>
+<th>Type</th>
+<th>Weight</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>loss_cls</code></td>
+<td>Focal Loss</td>
+<td>2.0</td>
+<td>All 450 queries</td>
+<td>10-class classification with background suppression</td>
+</tr>
+<tr>
+<td><code>loss_bbox</code></td>
+<td>L1 Loss</td>
+<td>0.25</td>
+<td>Positive queries</td>
+<td>10-dim bbox regression (yaw &amp; velocity zeroed)</td>
+</tr>
+<tr>
+<td><code>loss_yaw_bin</code></td>
+<td>Cross Entropy</td>
+<td>0.2</td>
+<td>Positive queries</td>
+<td>24-bin yaw classification</td>
+</tr>
+<tr>
+<td><code>loss_yaw_res</code></td>
+<td>Smooth L1</td>
+<td>0.2</td>
+<td>Positive queries</td>
+<td>(sin, cos) residual regression</td>
+</tr>
+<tr>
+<td><code>loss_vel</code></td>
+<td>Smooth L1</td>
+<td>0.25</td>
+<td>Positive queries</td>
+<td>(vx, vy) from camera-only velocity head</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="loss-computation-flow">Loss Computation Flow<a class="headerlink" href="#loss-computation-flow" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TD
+    subgraph "Per Decoder Layer"
+        GT["Ground Truth Boxes&lt;br/&gt;+ Labels"] --&gt; MATCH["Hungarian Matching&lt;br/&gt;(one-to-one assignment)"]
+        PRED["Predicted Boxes&lt;br/&gt;+ Scores"] --&gt; MATCH
+
+        MATCH --&gt; POS["Positive Queries&lt;br/&gt;(matched to GT)"]
+        MATCH --&gt; NEG["Negative Queries&lt;br/&gt;(background)"]
+
+        POS --&gt; LCLS["loss_cls&lt;br/&gt;Focal Loss on all queries"]
+        NEG --&gt; LCLS
+
+        POS --&gt; LBBOX["loss_bbox&lt;br/&gt;L1 on dims 0-5 only&lt;br/&gt;(yaw &amp; vel weights = 0)"]
+
+        POS --&gt; LYAW_B["loss_yaw_bin&lt;br/&gt;CrossEntropy on 24 bins"]
+        POS --&gt; LYAW_R["loss_yaw_res&lt;br/&gt;SmoothL1 on (sin, cos)"]
+        POS --&gt; LVEL["loss_vel&lt;br/&gt;SmoothL1 on (vx, vy)"]
+    end
+
+    subgraph "Multi-Layer Aggregation"
+        L0["Layer 0 losses"] --&gt; AUX["Auxiliary losses&lt;br/&gt;(d0.loss_cls, d0.loss_bbox, ...)"]
+        L1["Layer 1 losses"] --&gt; AUX
+        L4["Layer 4 losses"] --&gt; AUX
+        L5["Layer 5 losses"] --&gt; PRIMARY["Primary losses&lt;br/&gt;(loss_cls, loss_bbox, ...)"]
+    end
+
+    LCLS --&gt; L5
+    LBBOX --&gt; L5
+    LYAW_B --&gt; L5
+    LYAW_R --&gt; L5
+    LVEL --&gt; L5
+
+    style PRIMARY fill:#d4edda,stroke:#28a745
+    style AUX fill:#fff3e0,stroke:#f5a623</code></pre>
+<h3 id="gradient-isolation-detail">Gradient Isolation Detail<a class="headerlink" href="#gradient-isolation-detail" title="Permanent link">&para;</a></h3>
+<p>The bbox regression loss operates on all 10 dimensions, but indices 6-9 have their loss weights zeroed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">bbox_weights</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>   <span class="c1"># sin(yaw) -- yaw_bin/res heads only</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">bbox_weights</span><span class="p">[:,</span> <span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>   <span class="c1"># cos(yaw) -- yaw_bin/res heads only</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">bbox_weights</span><span class="p">[:,</span> <span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>   <span class="c1"># vx -- velocity head only</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">bbox_weights</span><span class="p">[:,</span> <span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>   <span class="c1"># vy -- velocity head only</span>
+</code></pre></div>
+<p>This ensures that yaw is exclusively supervised through the bin + residual heads, and velocity is exclusively supervised through the camera-only cross-attention head.</p>
+<hr />
+<h2 id="hungarian-matching">Hungarian Matching<a class="headerlink" href="#hungarian-matching" title="Permanent link">&para;</a></h2>
+<p>Assignment uses <code>HungarianAssigner3D</code> to find the optimal one-to-one matching between predictions and ground truth:</p>
+<table>
+<thead>
+<tr>
+<th>Matching Cost</th>
+<th>Type</th>
+<th>Weight</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Classification</td>
+<td>Focal Loss Cost</td>
+<td>2.0</td>
+</tr>
+<tr>
+<td>Bbox regression</td>
+<td>BBox3D L1 Cost</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>IoU</td>
+<td>IoU Cost</td>
+<td>0.25</td>
+</tr>
+</tbody>
+</table>
+<p>The matching is performed independently per decoder layer (since predictions differ across layers).</p>
+<hr />
+<h2 id="auxiliary-losses">Auxiliary Losses<a class="headerlink" href="#auxiliary-losses" title="Permanent link">&para;</a></h2>
+<p>All 6 decoder layers produce predictions, but they serve different roles:</p>
+<table>
+<thead>
+<tr>
+<th>Layers 0-4</th>
+<th>Layer 5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auxiliary supervision</td>
+<td>Primary supervision</td>
+</tr>
+<tr>
+<td>Prefixed: <code>d0.loss_cls</code>, <code>d1.loss_bbox</code>, ...</td>
+<td>Keys: <code>loss_cls</code>, <code>loss_bbox</code>, ...</td>
+</tr>
+<tr>
+<td>Same weights as primary</td>
+<td>Standard weights</td>
+</tr>
+<tr>
+<td>Stabilize training of earlier layers</td>
+<td>Drives final detection quality</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="training-configuration">Training Configuration<a class="headerlink" href="#training-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="optimizer">Optimizer<a class="headerlink" href="#optimizer" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Type</td>
+<td>AdamW</td>
+</tr>
+<tr>
+<td>Learning rate</td>
+<td>2e-4</td>
+</tr>
+<tr>
+<td>Weight decay</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>Backbone lr multiplier</td>
+<td>0.1 (slower learning for pretrained ResNet50)</td>
+</tr>
+<tr>
+<td>Gradient clipping</td>
+<td>max_norm = 1.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="learning-rate-schedule">Learning Rate Schedule<a class="headerlink" href="#learning-rate-schedule" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph LR
+    subgraph "LR Schedule"
+        W["Warmup&lt;br/&gt;0 → 10K iters&lt;br/&gt;Linear, ratio 1/1000"] --&gt; C["Cosine Annealing&lt;br/&gt;10K → 200K iters&lt;br/&gt;min_lr_ratio = 1e-3"]
+    end
+
+    style W fill:#fff3e0,stroke:#f5a623
+    style C fill:#e8f4fd,stroke:#4a90d9</code></pre>
+<h3 id="general-settings">General Settings<a class="headerlink" href="#general-settings" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total iterations</td>
+<td>200,000</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>FP32 (full)</td>
+</tr>
+<tr>
+<td>Batch size</td>
+<td>1 per GPU</td>
+</tr>
+<tr>
+<td>Workers per GPU</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Eval interval</td>
+<td>every 20K iterations</td>
+</tr>
+<tr>
+<td>Checkpoint interval</td>
+<td>every 20K iterations (keep 5)</td>
+</tr>
+<tr>
+<td>Speed</td>
+<td>~0.39 s/iter</td>
+</tr>
+<tr>
+<td>GPU memory</td>
+<td>~8.9 GB</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="temporal-bev-memory-during-training">Temporal BEV Memory During Training<a class="headerlink" href="#temporal-bev-memory-during-training" title="Permanent link">&para;</a></h2>
+<p>Training uses a temporal queue of 4 frames to build the <code>prev_bev</code> context:</p>
+<pre class="mermaid"><code>graph TD
+    subgraph "Temporal Queue Processing"
+        IMG["Stacked Images&lt;br/&gt;(B, T=4, 6, C, H, W)"]
+        IMG --&gt; SPLIT["Split into&lt;br/&gt;history (T-1 frames)&lt;br/&gt;+ current (1 frame)"]
+
+        SPLIT --&gt; HIST["obtain_history_bev"]
+        SPLIT --&gt; CUR["Current Frame"]
+    end
+
+    subgraph "History BEV Construction"
+        HIST --&gt; LOOP["For each history frame:&lt;br/&gt;1. Extract image features&lt;br/&gt;2. Run encoder only (no decoder)&lt;br/&gt;3. Get BEV embedding"]
+        LOOP --&gt; |"eval mode&lt;br/&gt;no gradient&lt;br/&gt;FP32"| PREV["prev_bev&lt;br/&gt;(last history frame's BEV)"]
+    end
+
+    subgraph "Current Frame Training"
+        CUR --&gt; EXTRACT["Extract features&lt;br/&gt;(camera + LiDAR)"]
+        PREV --&gt; FWD["forward_pts_train&lt;br/&gt;Full encoder + decoder&lt;br/&gt;with prev_bev context"]
+        EXTRACT --&gt; FWD
+        FWD --&gt; LOSS["Compute all losses"]
+        FWD --&gt; CACHE["Push bev_embed&lt;br/&gt;to scene cache&lt;br/&gt;for next sample"]
+    end
+
+    style PREV fill:#d4edda,stroke:#28a745
+    style LOSS fill:#e8f4fd,stroke:#4a90d9</code></pre>
+<p><strong>Key details</strong>:
+- History frames are processed in <strong>eval mode</strong> with <strong>no gradient</strong> to save memory
+- If the scene changes between frames, <code>prev_bev</code> is set to <code>None</code>
+- The BEV embedding is cached per-scene for cross-sample temporal continuity</p>
+<hr />
+<h2 id="key-files">Key Files<a class="headerlink" href="#key-files" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Path</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bevformer_head.py</code></td>
+<td><code>bevformer/dense_heads/bevformer_head.py</code></td>
+<td><code>loss_single()</code> and <code>loss()</code> methods</td>
+</tr>
+<tr>
+<td><code>bevformer.py</code></td>
+<td><code>bevformer/detectors/bevformer.py</code></td>
+<td><code>forward_train()</code>, <code>obtain_history_bev()</code></td>
+</tr>
+<tr>
+<td><code>bevformer_project.py</code></td>
+<td><code>configs/bevformer/bevformer_project.py</code></td>
+<td>All training hyperparameters</td>
+</tr>
+<tr>
+<td><code>hungarian_assigner_3d.py</code></td>
+<td><code>core/bbox/assigners/hungarian_assigner_3d.py</code></td>
+<td>Hungarian matching</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a href="../09-inference/">Next: Chapter 9 - Inference &amp; Decoding</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

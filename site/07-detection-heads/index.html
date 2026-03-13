@@ -1,0 +1,1409 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer">
+      
+      
+      
+      
+        <link rel="prev" href="../06-transformer-decoder/">
+      
+      
+        <link rel="next" href="../08-loss-and-training/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Detection Heads - BEVFormerFusion Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chapter-7-detection-heads" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BEVFormerFusion Docs" class="md-header__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BEVFormerFusion Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Detection Heads
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BEVFormerFusion Docs" class="md-nav__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BEVFormerFusion Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-data-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-camera-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-lidar-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiDAR Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-encoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-decoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-transformer-decoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Decoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection Heads
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection Heads
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#head-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Head Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Head Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#head-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Head Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bbox-code-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BBox Code Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yaw-binresidual-head" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Yaw Bin/Residual Head
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Yaw Bin/Residual Head">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-with-direct-yaw-regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem with Direct Yaw Regression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-bin-residual-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Bin + Residual Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sincos-normalization-in-regression-head" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sin/Cos Normalization in Regression Head
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#velocity-head" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Velocity Head
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Velocity Head">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-temporal-dilution-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Temporal Dilution Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-camera-only-cross-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: Camera-Only Cross-Attention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gradient-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradient Isolation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-loss-and-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loss & Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendices
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendices
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-tensor-shapes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor Shapes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-file-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#head-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Head Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Head Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#head-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Head Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bbox-code-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BBox Code Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yaw-binresidual-head" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Yaw Bin/Residual Head
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Yaw Bin/Residual Head">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-with-direct-yaw-regression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem with Direct Yaw Regression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-bin-residual-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Bin + Residual Solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sincos-normalization-in-regression-head" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sin/Cos Normalization in Regression Head
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#velocity-head" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Velocity Head
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Velocity Head">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-temporal-dilution-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Temporal Dilution Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-camera-only-cross-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: Camera-Only Cross-Attention
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gradient-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradient Isolation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chapter-7-detection-heads">Chapter 7: Detection Heads<a class="headerlink" href="#chapter-7-detection-heads" title="Permanent link">&para;</a></h1>
+<p><a href="../00-overview/">00 Overview</a> | <a href="../01-data-pipeline/">01 Data Pipeline</a> | <a href="../02-camera-branch/">02 Camera Branch</a> | <a href="../03-lidar-branch/">03 LiDAR Branch</a> | <a href="../04-encoder-fusion/">04 Encoder Fusion</a> | <a href="../05-decoder-fusion/">05 Decoder Fusion</a> | <a href="../06-transformer-decoder/">06 Decoder</a> | <strong>07 Detection Heads</strong> | <a href="../08-loss-and-training/">08 Loss &amp; Training</a> | <a href="../09-inference/">09 Inference</a> | <a href="../appendix-tensor-shapes/">Appendix A: Tensors</a> | <a href="../appendix-file-map/">Appendix B: Files</a></p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Each decoder layer produces a set of predictions through 5 parallel heads. Three of these are novel additions to BEVFormer: the yaw bin/residual heads and the velocity head with camera-only cross-attention.</p>
+<hr />
+<h2 id="head-architecture">Head Architecture<a class="headerlink" href="#head-architecture" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TD
+    DEC["Decoder Output&lt;br/&gt;hs[layer]"]
+
+    DEC --&gt; CLS["Classification Head&lt;br/&gt;MLP → 10 classes"]
+    DEC --&gt; REG["Regression Head&lt;br/&gt;MLP → 10-dim bbox"]
+    DEC --&gt; YAW_B["Yaw Bin Head&lt;br/&gt;MLP → 24 bins"]
+    DEC --&gt; YAW_R["Yaw Residual Head&lt;br/&gt;MLP → (sin, cos)"]
+
+    DEC --&gt; VEL_CA["Velocity Cross-Attention"]
+    CAM_BEV["Camera-Only BEV&lt;br/&gt;(no LiDAR fusion)"] --&gt; VEL_CA
+    VEL_CA --&gt; VEL["Velocity Head&lt;br/&gt;MLP → (vx, vy)"]
+
+    CLS --&gt; OUT["Final Predictions"]
+    REG --&gt; OUT
+    YAW_B --&gt; OUT
+    YAW_R --&gt; OUT
+    VEL --&gt; OUT
+
+    classDef standard fill:#e8f4fd,stroke:#4a90d9
+    classDef novel fill:#fff3e0,stroke:#f5a623
+    classDef velocity fill:#d4edda,stroke:#28a745
+
+    class CLS,REG standard
+    class YAW_B,YAW_R novel
+    class VEL_CA,VEL,CAM_BEV velocity</code></pre>
+<h3 id="head-details">Head Details<a class="headerlink" href="#head-details" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Head</th>
+<th>Architecture</th>
+<th>Output</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Classification</td>
+<td>Linear+LN+ReLU (x N) -&gt; Linear(256, 10)</td>
+<td>Class scores</td>
+<td>Focal loss supervision</td>
+</tr>
+<tr>
+<td>Regression</td>
+<td>Linear+ReLU (x N) -&gt; Linear(256, 10)</td>
+<td>10-dim bbox code</td>
+<td>Yaw &amp; velocity indices zeroed in loss</td>
+</tr>
+<tr>
+<td>Yaw Bin</td>
+<td>Linear(256,256)+ReLU -&gt; Linear(256, 24)</td>
+<td>24 bin logits</td>
+<td>CrossEntropy loss</td>
+</tr>
+<tr>
+<td>Yaw Residual</td>
+<td>Linear(256,256)+ReLU -&gt; Linear(256, 2)</td>
+<td>(sin_res, cos_res)</td>
+<td>SmoothL1 loss</td>
+</tr>
+<tr>
+<td>Velocity</td>
+<td>CrossAttn + Linear(256,256)+ReLU -&gt; Linear(256, 2)</td>
+<td>(vx, vy)</td>
+<td>Camera-only BEV input</td>
+</tr>
+</tbody>
+</table>
+<p>All heads are cloned per decoder layer (6 independent copies each), enabling auxiliary supervision.</p>
+<hr />
+<h2 id="bbox-code-layout">BBox Code Layout<a class="headerlink" href="#bbox-code-layout" title="Permanent link">&para;</a></h2>
+<p>The regression head outputs a 10-dimensional vector with this fixed layout:</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Symbol</th>
+<th>Encoding</th>
+<th>Supervised By</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>cx</td>
+<td>sigmoid + pc_range scaling</td>
+<td><code>reg_branches</code></td>
+</tr>
+<tr>
+<td>1</td>
+<td>cy</td>
+<td>sigmoid + pc_range scaling</td>
+<td><code>reg_branches</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>log(w)</td>
+<td>log-space width</td>
+<td><code>reg_branches</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>log(l)</td>
+<td>log-space length</td>
+<td><code>reg_branches</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>cz</td>
+<td>sigmoid + pc_range scaling</td>
+<td><code>reg_branches</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>log(h)</td>
+<td>log-space height</td>
+<td><code>reg_branches</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>sin(yaw)</td>
+<td>unit-circle normalized</td>
+<td><code>yaw_bin/res_branches</code> only</td>
+</tr>
+<tr>
+<td>7</td>
+<td>cos(yaw)</td>
+<td>unit-circle normalized</td>
+<td><code>yaw_bin/res_branches</code> only</td>
+</tr>
+<tr>
+<td>8</td>
+<td>vx</td>
+<td>direct</td>
+<td><code>vel_branches</code> only</td>
+</tr>
+<tr>
+<td>9</td>
+<td>vy</td>
+<td>direct</td>
+<td><code>vel_branches</code> only</td>
+</tr>
+</tbody>
+</table>
+<p>Indices 6-9 are <strong>overwritten at inference</strong> by the dedicated yaw and velocity heads. During training, their loss weights in <code>bbox_weights</code> are set to zero to prevent conflicting gradients.</p>
+<hr />
+<h2 id="yaw-binresidual-head">Yaw Bin/Residual Head<a class="headerlink" href="#yaw-binresidual-head" title="Permanent link">&para;</a></h2>
+<h3 id="the-problem-with-direct-yaw-regression">The Problem with Direct Yaw Regression<a class="headerlink" href="#the-problem-with-direct-yaw-regression" title="Permanent link">&para;</a></h3>
+<p>Yaw angles have a wrapping discontinuity at +/-pi. A small angular change near the boundary causes a huge regression target jump, destabilizing gradients.</p>
+<h3 id="the-bin-residual-solution">The Bin + Residual Solution<a class="headerlink" href="#the-bin-residual-solution" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    subgraph "Encoding (Training)"
+        YAW["Ground Truth Yaw"] --&gt; BIN_IDX["Bin Index&lt;br/&gt;floor((yaw + pi) / bin_size)&lt;br/&gt;24 bins, 15 deg each"]
+        YAW --&gt; CENTER["Bin Center&lt;br/&gt;(bin_idx + 0.5) * bin_size - pi"]
+        YAW --&gt; RES["Residual = yaw - center&lt;br/&gt;Small angle within +/-7.5 deg"]
+        RES --&gt; SINCOS["Encode as (sin, cos)&lt;br/&gt;Avoids wrapping issues"]
+    end
+
+    subgraph "Decoding (Inference)"
+        PRED_BIN["Predicted Bin Logits"] --&gt; ARGMAX["argmax → winning bin"]
+        ARGMAX --&gt; PRED_CENTER["Bin Center"]
+        PRED_RES["Predicted (sin, cos)"] --&gt; ATAN["atan2(sin, cos) → residual angle"]
+        PRED_CENTER --&gt; FINAL["Final Yaw = center + residual"]
+        ATAN --&gt; FINAL
+    end
+
+    style SINCOS fill:#d4edda,stroke:#28a745
+    style FINAL fill:#d4edda,stroke:#28a745</code></pre>
+<p><strong>Why this works</strong>: The bin classification handles coarse orientation (no wrapping issues with cross-entropy), while the residual regression handles fine-grained correction within a narrow +/-7.5 degree range using sin/cos encoding.</p>
+<h3 id="sincos-normalization-in-regression-head">Sin/Cos Normalization in Regression Head<a class="headerlink" href="#sincos-normalization-in-regression-head" title="Permanent link">&para;</a></h3>
+<p>The regression branch also outputs sin/cos at indices 6-7. These are stabilized during training:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">sc</span> <span class="o">=</span> <span class="n">reg_output</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">tanh</span><span class="p">()</span>                        <span class="c1"># clamp to (-1, 1)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">sc</span> <span class="o">=</span> <span class="n">sc</span> <span class="o">/</span> <span class="p">(</span><span class="n">sc</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">)</span>        <span class="c1"># project onto unit circle</span>
+</code></pre></div>
+<p>This prevents the sin/cos pair from drifting off the unit circle during early training.</p>
+<hr />
+<h2 id="velocity-head">Velocity Head<a class="headerlink" href="#velocity-head" title="Permanent link">&para;</a></h2>
+<p>The velocity head is the key innovation for maintaining accurate motion prediction despite LiDAR fusion.</p>
+<h3 id="the-temporal-dilution-problem">The Temporal Dilution Problem<a class="headerlink" href="#the-temporal-dilution-problem" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph LR
+    subgraph "Temporal Self-Attention"
+        PREV["Previous BEV&lt;br/&gt;(frame t-1)"] --&gt; TSA["TSA compares&lt;br/&gt;current vs previous"]
+        CUR["Current BEV&lt;br/&gt;(frame t)"] --&gt; TSA
+        TSA --&gt; MOTION["Motion Signal&lt;br/&gt;encoded in BEV"]
+    end
+
+    subgraph "The Problem"
+        MOTION --&gt; BLEND["Blended with&lt;br/&gt;static LiDAR features"]
+        LIDAR["LiDAR BEV&lt;br/&gt;(single frame,&lt;br/&gt;no temporal info)"] --&gt; BLEND
+        BLEND --&gt; DILUTED["Diluted&lt;br/&gt;Motion Signal"]
+    end
+
+    style MOTION fill:#d4edda,stroke:#28a745
+    style DILUTED fill:#f8d7da,stroke:#dc3545
+    style LIDAR fill:#fff3e0,stroke:#f5a623</code></pre>
+<h3 id="the-solution-camera-only-cross-attention">The Solution: Camera-Only Cross-Attention<a class="headerlink" href="#the-solution-camera-only-cross-attention" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    subgraph "Velocity Head"
+        DQ["Decoder Query&lt;br/&gt;(object representation)"]
+        CAM["Camera-Only BEV&lt;br/&gt;(cloned BEFORE&lt;br/&gt;LiDAR fusion)"]
+
+        DQ --&gt;|"Q"| MHA["Multi-Head Attention&lt;br/&gt;8 heads"]
+        CAM --&gt;|"K, V"| MHA
+
+        MHA --&gt; CTX["Velocity Context&lt;br/&gt;(motion-aware features)"]
+        CTX --&gt; MLP["MLP: 256 → 256 → 2"]
+        MLP --&gt; VEL["Velocity (vx, vy)"]
+    end
+
+    subgraph "Why Camera-Only BEV?"
+        P1["Preserves full temporal signal from TSA"]
+        P2["No dilution from static LiDAR geometry"]
+        P3["Each query selectively attends to&lt;br/&gt;motion-relevant BEV regions"]
+    end
+
+    style CAM fill:#d4edda,stroke:#28a745
+    style VEL fill:#d4edda,stroke:#28a745</code></pre>
+<p><strong>Key design choices</strong>:</p>
+<ol>
+<li><strong>Camera-only BEV</strong>: <code>bev_embed_cam</code> is cloned before decoder-side LiDAR fusion, preserving the full temporal motion signal from TSA</li>
+<li><strong>Full attention</strong> (not deformable): <code>nn.MultiheadAttention</code> allows each query to attend over the entire BEV grid, important for capturing motion patterns that may span large regions</li>
+<li><strong>Per-layer</strong>: One cross-attention + MLP per decoder layer, receiving the progressively refined query</li>
+</ol>
+<hr />
+<h2 id="gradient-isolation">Gradient Isolation<a class="headerlink" href="#gradient-isolation" title="Permanent link">&para;</a></h2>
+<p>A critical design pattern ensures each specialized head receives exclusive supervision:</p>
+<pre class="mermaid"><code>graph TD
+    subgraph "Regression Head Output (10-dim)"
+        R0["cx"] --- R1["cy"]
+        R1 --- R2["log_w"]
+        R2 --- R3["log_l"]
+        R3 --- R4["cz"]
+        R4 --- R5["log_h"]
+        R5 --- R6["sin_yaw"]
+        R6 --- R7["cos_yaw"]
+        R7 --- R8["vx"]
+        R8 --- R9["vy"]
+    end
+
+    R0 --&gt; L1["loss_bbox&lt;br/&gt;(L1 loss)"]
+    R1 --&gt; L1
+    R2 --&gt; L1
+    R3 --&gt; L1
+    R4 --&gt; L1
+    R5 --&gt; L1
+
+    R6 -.-&gt;|"weight = 0"| L1
+    R7 -.-&gt;|"weight = 0"| L1
+    R8 -.-&gt;|"weight = 0"| L1
+    R9 -.-&gt;|"weight = 0"| L1
+
+    YB["Yaw Bin Head"] --&gt; L2["loss_yaw_bin&lt;br/&gt;(CrossEntropy)"]
+    YR["Yaw Res Head"] --&gt; L3["loss_yaw_res&lt;br/&gt;(SmoothL1)"]
+    VH["Velocity Head"] --&gt; L4["loss_vel&lt;br/&gt;(SmoothL1)"]
+
+    classDef active fill:#d4edda,stroke:#28a745
+    classDef zeroed fill:#f8d7da,stroke:#dc3545
+
+    class R0,R1,R2,R3,R4,R5 active
+    class R6,R7,R8,R9 zeroed</code></pre>
+<p>By zeroing <code>bbox_weights</code> at indices 6-9, the regression head receives no gradient for yaw or velocity. All yaw learning flows through the bin + residual heads, and all velocity learning flows through the camera-only cross-attention head.</p>
+<hr />
+<h2 id="key-files">Key Files<a class="headerlink" href="#key-files" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Path</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bevformer_head.py</code></td>
+<td><code>bevformer/dense_heads/bevformer_head.py</code></td>
+<td>All prediction heads, velocity cross-attention, loss computation</td>
+</tr>
+<tr>
+<td><code>util.py</code></td>
+<td><code>core/bbox/util.py</code></td>
+<td><code>normalize_bbox</code>, <code>denormalize_bbox</code>, yaw bin encode/decode</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><a href="../08-loss-and-training/">Next: Chapter 8 - Loss Functions &amp; Training</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

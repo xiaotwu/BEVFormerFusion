@@ -1,0 +1,1190 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer">
+      
+      
+      
+      
+        <link rel="prev" href="../04-encoder-fusion/">
+      
+      
+        <link rel="next" href="../06-transformer-decoder/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Decoder Fusion - BEVFormerFusion Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chapter-5-decoder-side-fusion" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BEVFormerFusion Docs" class="md-header__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BEVFormerFusion Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Decoder Fusion
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BEVFormerFusion Docs" class="md-nav__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BEVFormerFusion Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-data-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-camera-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-lidar-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiDAR Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-encoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-pipeline-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pipeline Diagram
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-identity-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Identity Initialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-magnitude-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Magnitude Matching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-comparison-encoder-side-vs-decoder-side-fusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Comparison: Encoder-Side vs Decoder-Side Fusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-why-both" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Why Both?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-transformer-decoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Decoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-detection-heads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection Heads
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-loss-and-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loss & Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendices
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendices
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-tensor-shapes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor Shapes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-file-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-pipeline-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pipeline Diagram
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-identity-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Identity Initialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-magnitude-matching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Magnitude Matching
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-comparison-encoder-side-vs-decoder-side-fusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Comparison: Encoder-Side vs Decoder-Side Fusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-why-both" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Why Both?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chapter-5-decoder-side-fusion">Chapter 5: Decoder-Side Fusion<a class="headerlink" href="#chapter-5-decoder-side-fusion" title="Permanent link">&para;</a></h1>
+<hr />
+<p><strong>Navigation</strong>:
+<a href="../00-overview/">Ch 0 -- Overview</a> |
+<a href="../01-data-pipeline/">Ch 1 -- Data Pipeline</a> |
+<a href="../02-camera-branch/">Ch 2 -- Camera</a> |
+<a href="../03-lidar-branch/">Ch 3 -- LiDAR</a> |
+<a href="../04-encoder-fusion/">Ch 4 -- Encoder Fusion</a> |
+<a href="./">Ch 5 -- Decoder Fusion</a> |
+<a href="../06-transformer-decoder/">Ch 6 -- Decoder</a> |
+<a href="../07-detection-heads/">Ch 7 -- Heads</a> |
+<a href="../08-loss-and-training/">Ch 8 -- Loss &amp; Training</a> |
+<a href="../09-inference/">Ch 9 -- Inference</a> |
+<a href="../appendix-tensor-shapes/">Appendix A</a> |
+<a href="../appendix-file-map/">Appendix B</a></p>
+<hr />
+<h2 id="1-overview">1. Overview<a class="headerlink" href="#1-overview" title="Permanent link">&para;</a></h2>
+<p>After the BEV encoder produces its output, a <strong>second LiDAR injection point</strong> enriches the representation before it reaches the decoder. Where encoder-side fusion (<a href="../04-encoder-fusion/">Chapter 4</a>) blends LiDAR into BEV queries at every encoder layer through dual spatial cross-attention, decoder-side fusion performs a single <strong>concat + linear projection</strong> operation on the fully-formed encoder output.</p>
+<p>The two fusion stages are complementary. Encoder-side fusion provides fine-grained, per-layer refinement. Decoder-side fusion provides a direct LiDAR signal that bypasses the encoder entirely, ensuring that no LiDAR information is lost to iterative processing. When <code>fusion_mode='encoder_decoder'</code>, both stages are active simultaneously.</p>
+<hr />
+<h2 id="2-pipeline-diagram">2. Pipeline Diagram<a class="headerlink" href="#2-pipeline-diagram" title="Permanent link">&para;</a></h2>
+<p>The following diagram traces the full decoder-side fusion pipeline, from encoder output through to the fused BEV that enters the decoder.</p>
+<pre class="mermaid"><code>graph TD
+    ENC_OUT["Encoder Output&lt;br/&gt;(bev_embed)"]
+
+    subgraph CamPreserve["Camera-Only BEV Preservation"]
+        direction TB
+        CLONE["bev_embed.clone()"]
+        CAM_BEV["bev_embed_cam&lt;br/&gt;(saved for velocity head)"]
+        CLONE --&gt; CAM_BEV
+    end
+
+    ENC_OUT --&gt; CLONE
+    ENC_OUT --&gt; CONCAT
+
+    subgraph LidarFusion["LiDAR Projection &amp; Fusion"]
+        direction TB
+        RAW["Raw LiDAR BEV&lt;br/&gt;(bev_lidar)"]
+        INTERP["F.interpolate&lt;br/&gt;(bilinear, match BEV grid)"]
+        CONV["Conv2d 64 -&gt; 256&lt;br/&gt;(1x1 projection)"]
+        FLAT["Flatten + Permute&lt;br/&gt;(spatial dims to sequence)"]
+        LN1["LayerNorm&lt;br/&gt;(normalize variance)"]
+        ALPHA["Scale by alpha = 5.0&lt;br/&gt;(magnitude matching)"]
+        CONCAT["Concatenate&lt;br/&gt;[camera BEV, LiDAR tokens]&lt;br/&gt;along feature dim"]
+        LINEAR["Linear 2C -&gt; C&lt;br/&gt;(identity-initialized)"]
+        LN2["LayerNorm"]
+        FUSED["Fused BEV&lt;br/&gt;(ready for decoder)"]
+
+        RAW --&gt; INTERP --&gt; CONV --&gt; FLAT --&gt; LN1 --&gt; ALPHA --&gt; CONCAT
+        CONCAT --&gt; LINEAR --&gt; LN2 --&gt; FUSED
+    end
+
+    FUSED --&gt; DECODER["Decoder Cross-Attention&lt;br/&gt;(450 object queries attend&lt;br/&gt;to fused BEV)"]
+    CAM_BEV --&gt;|"cross-attn"| VEL["Velocity Head"]
+
+    classDef cam  fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100
+    classDef lid  fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1b5e20
+    classDef fuse fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#880e4f
+    classDef dec  fill:#e0f7fa,stroke:#00acc1,stroke-width:2px,color:#006064
+
+    class ENC_OUT,CLONE,CAM_BEV cam
+    class RAW,INTERP,CONV,FLAT,LN1,ALPHA lid
+    class CONCAT,LINEAR,LN2,FUSED fuse
+    class DECODER,VEL dec</code></pre>
+<p>The clone step is critical: <code>bev_embed_cam</code> captures the BEV <strong>before</strong> any decoder-side LiDAR mixing. The velocity head cross-attends to this camera-only copy to preserve the temporal motion signal that would otherwise be diluted by single-frame LiDAR features.</p>
+<hr />
+<h2 id="3-identity-initialization">3. Identity Initialization<a class="headerlink" href="#3-identity-initialization" title="Permanent link">&para;</a></h2>
+<p>The fusion linear layer (<code>lidar_fuse_linear</code>) maps from 2C dimensions back to C. A naive random initialization would immediately inject noisy LiDAR features into a pipeline that was producing reasonable camera-only BEV representations, destabilizing early training. The solution is <strong>identity initialization</strong>.</p>
+<pre class="mermaid"><code>graph TD
+    subgraph WeightMatrix["Linear Weight Matrix (C x 2C)"]
+        direction LR
+        LEFT["Left Half (columns 0..C-1)&lt;br/&gt;= Identity Matrix I&lt;br/&gt;(camera passthrough)"]
+        RIGHT["Right Half (columns C..2C-1)&lt;br/&gt;= All Zeros&lt;br/&gt;(LiDAR ignored)"]
+    end
+
+    INPUT["Input: [camera_feats, lidar_feats]&lt;br/&gt;concatenated along feature dim"]
+    OUTPUT["Output at init:&lt;br/&gt;camera_feats * I + lidar_feats * 0&lt;br/&gt;= camera_feats unchanged"]
+
+    INPUT --&gt; WeightMatrix --&gt; OUTPUT
+
+    subgraph Training["During Training"]
+        direction TB
+        GRAD["Gradients flow into right half"]
+        LEARN["Network gradually learns&lt;br/&gt;nonzero LiDAR weights"]
+        RESULT["Output evolves to:&lt;br/&gt;camera + learned LiDAR contribution"]
+        GRAD --&gt; LEARN --&gt; RESULT
+    end
+
+    OUTPUT -.-&gt;|"training begins"| GRAD
+
+    classDef cam  fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100
+    classDef lid  fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#1b5e20
+    classDef train fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c
+
+    class LEFT cam
+    class RIGHT lid
+    class GRAD,LEARN,RESULT train</code></pre>
+<p>The initialization code makes this explicit:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># In init_weights():</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="bp">self</span><span class="o">.</span><span class="n">lidar_fuse_linear</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>           <span class="c1"># start with all zeros</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="bp">self</span><span class="o">.</span><span class="n">lidar_fuse_linear</span><span class="o">.</span><span class="n">weight</span><span class="p">[:,</span> <span class="p">:</span><span class="n">C</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>  <span class="c1"># camera half = identity</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># lidar half (columns C..2C-1) remains zero</span>
+</code></pre></div>
+<p>At initialization, the linear layer is a <strong>pure passthrough</strong> for camera features. The bias is also zeroed. This means the network begins training as if no decoder-side fusion exists at all --- identical to the camera-only baseline. As gradients flow during training, the right half of the weight matrix gradually develops nonzero values, and the network learns exactly how much LiDAR information to incorporate and in what combination.</p>
+<p>This design pattern is sometimes called a "residual gate" or "zero init shortcut." It is especially important here because the encoder output is already a mature, high-quality representation. Disrupting it with random LiDAR noise at the start of training would waste optimization steps recovering lost performance.</p>
+<hr />
+<h2 id="4-magnitude-matching">4. Magnitude Matching<a class="headerlink" href="#4-magnitude-matching" title="Permanent link">&para;</a></h2>
+<p>Even with identity initialization, there is a subtle problem: the raw LiDAR projections and the camera BEV features live at very different scales.</p>
+<pre class="mermaid"><code>graph LR
+    subgraph Problem["Scale Mismatch"]
+        direction TB
+        LIDAR_RAW["LiDAR projection output&lt;br/&gt;norm ~ 0.4"]
+        CAM_BEV["Camera BEV features&lt;br/&gt;norm ~ 16"]
+        MISMATCH["40x difference&lt;br/&gt;LiDAR signal vanishes&lt;br/&gt;in concatenation"]
+        LIDAR_RAW --&gt; MISMATCH
+        CAM_BEV --&gt; MISMATCH
+    end
+
+    subgraph Solution["LayerNorm + Alpha Scaling"]
+        direction TB
+        LN_STEP["LayerNorm&lt;br/&gt;norm ~ 1.0"]
+        ALPHA_STEP["Multiply by alpha = 5.0&lt;br/&gt;norm ~ 5.0"]
+        MATCHED["Same order of magnitude&lt;br/&gt;as camera features"]
+        LN_STEP --&gt; ALPHA_STEP --&gt; MATCHED
+    end
+
+    MISMATCH --&gt;|"apply to LiDAR tokens"| LN_STEP
+
+    classDef problem fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c
+    classDef solution fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+
+    class LIDAR_RAW,CAM_BEV,MISMATCH problem
+    class LN_STEP,ALPHA_STEP,MATCHED solution</code></pre>
+<p><strong>Why this matters.</strong> When two feature vectors are concatenated and fed through a linear layer, the layer's gradients are proportional to the input magnitudes. If LiDAR features have norm ~0.4 while camera features have norm ~16, the LiDAR columns of the weight matrix receive gradients roughly 40x smaller than the camera columns. Learning to use LiDAR information becomes extremely slow.</p>
+<p><strong>The two-step fix:</strong></p>
+<ol>
+<li>
+<p><strong>LayerNorm</strong> normalizes the projected LiDAR tokens to have unit variance (norm ~1.0). This removes the dependence on the raw PointPillars output scale.</p>
+</li>
+<li>
+<p><strong>Alpha scaling</strong> (constant factor of 5.0) brings the normalized features up to the same order of magnitude as the camera BEV. The value 5.0 was chosen empirically to produce LiDAR norms (~5) that are comparable to, but slightly below, camera norms (~16), ensuring balanced gradient flow without overwhelming the camera signal.</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># In forward():</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">bev_lidar_tok</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="n">bev_lidar_tok</span><span class="p">,</span> <span class="p">(</span><span class="n">bev_lidar_tok</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),))</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">bev_lidar_tok</span> <span class="o">=</span> <span class="n">bev_lidar_tok</span> <span class="o">*</span> <span class="mf">5.0</span>
+</code></pre></div>
+<p>Note that this normalization is applied <strong>before</strong> concatenation, so the LayerNorm here is independent of the <code>lidar_fuse_norm</code> that comes <strong>after</strong> the linear projection.</p>
+<hr />
+<h2 id="5-comparison-encoder-side-vs-decoder-side-fusion">5. Comparison: Encoder-Side vs Decoder-Side Fusion<a class="headerlink" href="#5-comparison-encoder-side-vs-decoder-side-fusion" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Encoder-Side Fusion</th>
+<th>Decoder-Side Fusion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Location</strong></td>
+<td>Inside each encoder layer (applied 4 times)</td>
+<td>Once, between encoder and decoder</td>
+</tr>
+<tr>
+<td><strong>Mechanism</strong></td>
+<td>Dual SCA with learnable blend weight</td>
+<td>Concatenation + linear projection</td>
+</tr>
+<tr>
+<td><strong>Initialization</strong></td>
+<td>Standard Xavier (blend weight starts at sigmoid(-2) ~ 0.12)</td>
+<td>Identity passthrough (camera = I, LiDAR = 0)</td>
+</tr>
+<tr>
+<td><strong>Temporal impact</strong></td>
+<td>Dilutes TSA signal at every layer</td>
+<td>Single dilution point after encoder completes</td>
+</tr>
+<tr>
+<td><strong>Granularity</strong></td>
+<td>Fine-grained, per-layer refinement through deformable attention</td>
+<td>Coarse, single-shot whole-BEV injection</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>1 blend scalar per layer + LiDAR projection conv</td>
+<td>Linear(2C, C) + LayerNorm + LiDAR projection conv</td>
+</tr>
+<tr>
+<td><strong>How LiDAR enters</strong></td>
+<td>Deformable cross-attention queries LiDAR BEV</td>
+<td>Direct feature concatenation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-why-both">6. Why Both?<a class="headerlink" href="#6-why-both" title="Permanent link">&para;</a></h2>
+<p>The encoder and decoder fusion stages serve fundamentally different roles, and their combination is more effective than either alone.</p>
+<p><strong>Encoder-side fusion</strong> operates through deformable attention, meaning the BEV queries can selectively attend to relevant spatial locations in the LiDAR feature map. This is powerful for fine-grained geometric detail --- depth ambiguities in camera features can be resolved by attending to nearby LiDAR points. However, because the fusion happens inside the encoder's iterative processing (4 layers of attention, normalization, and feed-forward), some LiDAR signal may be attenuated or transformed beyond recognition by the time the encoder output is produced.</p>
+<p><strong>Decoder-side fusion</strong> bypasses the encoder entirely. The LiDAR BEV features are projected and concatenated directly with the finished encoder output. This provides a "clean" LiDAR signal to the decoder that has not passed through any encoder layers. The decoder's object queries can therefore draw on both the encoder's refined camera-LiDAR blend and the raw, unprocessed LiDAR geometry.</p>
+<p>Together, the two stages give the model access to LiDAR information at two levels of abstraction: deeply integrated (encoder) and directly available (decoder). This is analogous to how residual connections in deep networks provide both processed and shortcut signals --- the combination is strictly more expressive than either path alone.</p>
+<hr />
+<h2 id="7-key-files">7. Key Files<a class="headerlink" href="#7-key-files" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Lines</th>
+<th>What to look for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td>53--62</td>
+<td><code>fusion_mode</code> parameter and validation</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td>94--97</td>
+<td>Module definitions: <code>lidar_proj</code>, <code>lidar_fuse_linear</code>, <code>lidar_fuse_norm</code></td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td>160--177</td>
+<td><code>init_weights()</code> --- identity initialization for the fusion linear layer</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td>346</td>
+<td><code>bev_embed_cam = bev_embed.clone()</code> --- camera-only snapshot before fusion</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td>349--364</td>
+<td>Forward pass: LiDAR projection, LayerNorm, alpha scaling, concat, linear fusion</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Previous: <a href="../04-encoder-fusion/">Chapter 4 -- Encoder-Side Fusion</a></em> | <em>Next: <a href="../06-transformer-decoder/">Chapter 6 -- Transformer Decoder</a></em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

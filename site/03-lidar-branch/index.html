@@ -1,0 +1,1313 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer">
+      
+      
+      
+      
+        <link rel="prev" href="../02-camera-branch/">
+      
+      
+        <link rel="next" href="../04-encoder-fusion/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>LiDAR Branch - BEVFormerFusion Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chapter-3-lidar-branch-pointpillars" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BEVFormerFusion Docs" class="md-header__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BEVFormerFusion Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              LiDAR Branch
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BEVFormerFusion Docs" class="md-nav__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BEVFormerFusion Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-data-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-camera-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiDAR Branch
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiDAR Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pointpillars-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PointPillars Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#voxelization-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Voxelization Detail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pillarfeaturenet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PillarFeatureNet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pointpillarsscatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PointPillarsScatter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bev-token-projection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BEV Token Projection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BEV Token Projection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoder-side-projection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decoder-side projection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-magnitude-matching-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The magnitude matching problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#projection-modules-by-fusion-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projection modules by fusion mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-encoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-decoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-transformer-decoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Decoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-detection-heads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection Heads
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-loss-and-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loss & Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendices
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendices
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-tensor-shapes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor Shapes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-file-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pointpillars-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PointPillars Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#voxelization-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Voxelization Detail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pillarfeaturenet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PillarFeatureNet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pointpillarsscatter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PointPillarsScatter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bev-token-projection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BEV Token Projection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BEV Token Projection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoder-side-projection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decoder-side projection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-magnitude-matching-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The magnitude matching problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#projection-modules-by-fusion-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projection modules by fusion mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chapter-3-lidar-branch-pointpillars">Chapter 3: LiDAR Branch (PointPillars)<a class="headerlink" href="#chapter-3-lidar-branch-pointpillars" title="Permanent link">&para;</a></h1>
+<p><a href="../00-overview/">00 Overview</a> | <a href="../01-data-pipeline/">01 Data Pipeline</a> | <a href="../02-camera-branch/">02 Camera</a> | <strong>03 LiDAR Branch</strong> | <a href="../04-encoder-fusion/">04 Encoder Fusion</a> | <a href="../05-decoder-fusion/">05 Decoder Fusion</a> | <a href="../06-transformer-decoder/">06 Decoder</a> | <a href="../07-detection-heads/">07 Heads</a> | <a href="../08-loss-and-training/">08 Loss &amp; Training</a> | <a href="../09-inference/">09 Inference</a> | <a href="../appendix-tensor-shapes/">Appendix A</a> | <a href="../appendix-file-map/">Appendix B</a></p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The LiDAR branch converts a raw point cloud into a dense 2D <strong>BEV feature map</strong> using PointPillars. Unlike the camera branch which produces multi-scale features across 6 views, the LiDAR branch outputs a single bird's-eye-view tensor that directly aligns with the BEV grid used by the rest of the model.</p>
+<p>This BEV feature map is not used for standalone detection -- it exists solely to be fused with camera features in the encoder and/or decoder stages.</p>
+<hr />
+<h2 id="pointpillars-pipeline">PointPillars Pipeline<a class="headerlink" href="#pointpillars-pipeline" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TD
+    A["Raw Point Cloud&lt;br/&gt;(N, 4) — x, y, z, intensity"] --&gt; B["FP32 Cast"]
+    B --&gt; C["Voxelization&lt;br/&gt;(hard_voxelize CUDA kernel)"]
+    C --&gt; D["PillarFeatureNet&lt;br/&gt;(PointNet-style MLP)"]
+    D --&gt; E["PointPillarsScatter&lt;br/&gt;(scatter to 2D grid)"]
+    E --&gt; F["BEV Feature Map&lt;br/&gt;(B, 64, 512, 512)"]</code></pre>
+<p>Each step:</p>
+<ul>
+<li><strong>FP32 Cast</strong> -- points are cast to float32 before voxelization to ensure numerical stability in the CUDA kernel.</li>
+<li><strong>Voxelization</strong> -- bins raw points into vertical pillars on a regular XY grid. Each pillar holds up to 20 points.</li>
+<li><strong>PillarFeatureNet</strong> -- a small PointNet applied independently to each pillar, producing a single 64-dim feature vector per pillar.</li>
+<li><strong>PointPillarsScatter</strong> -- places each pillar's feature vector at the correct (x, y) location on a 512x512 grid. Empty pillars are zero-filled.</li>
+<li><strong>BEV Feature Map</strong> -- the final output is a dense tensor of shape <code>(B, 64, 512, 512)</code> covering the full point cloud range.</li>
+</ul>
+<hr />
+<h2 id="voxelization-detail">Voxelization Detail<a class="headerlink" href="#voxelization-detail" title="Permanent link">&para;</a></h2>
+<p>The voxelization step uses mmdet3d's <code>hard_voxelize</code> CUDA kernel (invoked via <code>Voxelization</code> in <code>mmcv.ops</code>). It assigns each point to a pillar based on its XY coordinates and clips to a maximum number of points per pillar.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>voxel_size</code></td>
+<td>[0.2, 0.2, 8]</td>
+<td>0.2m XY resolution; single Z bin spans full height</td>
+</tr>
+<tr>
+<td><code>point_cloud_range</code></td>
+<td>[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]</td>
+<td>102.4m x 102.4m coverage</td>
+</tr>
+<tr>
+<td><code>max_num_points</code></td>
+<td>20</td>
+<td>Points per pillar (excess discarded)</td>
+</tr>
+<tr>
+<td><code>max_voxels</code></td>
+<td>(30000, 40000)</td>
+<td>(train, test) limits on total active pillars</td>
+</tr>
+</tbody>
+</table>
+<p>With <code>voxel_size=[0.2, 0.2, 8]</code> and a range of 102.4m in each horizontal axis, the grid is <code>102.4 / 0.2 = 512</code> cells in both X and Y. The Z voxel size of 8m means there is effectively one vertical bin -- hence "pillars" rather than full 3D voxels.</p>
+<p>Outputs of voxelization:
+- <strong>voxels</strong> -- <code>(num_pillars, max_points, 4)</code> padded point coordinates per pillar
+- <strong>num_points</strong> -- <code>(num_pillars,)</code> how many valid points in each pillar
+- <strong>coors</strong> -- <code>(num_pillars, 3)</code> the (batch_idx, y_idx, x_idx) grid coordinate of each pillar</p>
+<hr />
+<h2 id="pillarfeaturenet">PillarFeatureNet<a class="headerlink" href="#pillarfeaturenet" title="Permanent link">&para;</a></h2>
+<p>PillarFeatureNet applies a PointNet-style operation to each pillar independently:</p>
+<ol>
+<li><strong>Augmentation</strong> -- each point's features are augmented with offsets from the pillar center (x - x_c, y - y_c, z - z_c) and optionally the pillar center coordinates themselves.</li>
+<li><strong>Linear + BN + ReLU</strong> -- a single-layer MLP maps the augmented features to 64 dimensions.</li>
+<li><strong>Max pooling</strong> -- a max operation over all valid points in each pillar produces a single 64-dim vector.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in_channels</code></td>
+<td>4 (x, y, z, intensity)</td>
+</tr>
+<tr>
+<td><code>feat_channels</code></td>
+<td>[64]</td>
+</tr>
+<tr>
+<td><code>with_distance</code></td>
+<td>False</td>
+</tr>
+<tr>
+<td><code>norm_cfg</code></td>
+<td>BN1d, eps=1e-3, momentum=0.01</td>
+</tr>
+</tbody>
+</table>
+<p>The output is a sparse set of pillar features: <code>(num_pillars, 64)</code>.</p>
+<hr />
+<h2 id="pointpillarsscatter">PointPillarsScatter<a class="headerlink" href="#pointpillarsscatter" title="Permanent link">&para;</a></h2>
+<p>The scatter module converts the sparse pillar features into a dense 2D pseudo-image. For each pillar, its 64-dim feature vector is placed at the grid location given by <code>coors</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dense_map[batch, :, y_idx, x_idx] = pillar_feature
+</code></pre></div>
+<p>Locations with no points remain zero. The output shape is <code>(B, 64, 512, 512)</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in_channels</code></td>
+<td>64</td>
+</tr>
+<tr>
+<td><code>output_shape</code></td>
+<td>(512, 512)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="bev-token-projection">BEV Token Projection<a class="headerlink" href="#bev-token-projection" title="Permanent link">&para;</a></h2>
+<p>The raw PointPillars output <code>(B, 64, 512, 512)</code> cannot be directly fused with camera BEV features, which are 256-dimensional and live on a 100x100 grid. A projection step bridges this gap. The projection is applied in <code>PerceptionTransformer</code> and follows the same pattern for both encoder-side and decoder-side fusion:</p>
+<pre class="mermaid"><code>graph LR
+    A["PointPillars BEV&lt;br/&gt;(B, 64, 512, 512)"] --&gt; B["Bilinear Interpolate&lt;br/&gt;512 -&gt; 100"]
+    B --&gt; C["Conv2d(64, 256, 1)&lt;br/&gt;channel projection"]
+    C --&gt; D["Flatten + Permute&lt;br/&gt;(B, 10000, 256)"]</code></pre>
+<h3 id="decoder-side-projection">Decoder-side projection<a class="headerlink" href="#decoder-side-projection" title="Permanent link">&para;</a></h3>
+<p>For decoder-side fusion, the projected tokens pass through an additional normalization and scaling step before being concatenated with camera BEV tokens:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">bev_lidar_tok</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="n">bev_lidar_tok</span><span class="p">,</span> <span class="p">(</span><span class="mi">256</span><span class="p">,))</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">bev_lidar_tok</span> <span class="o">=</span> <span class="n">bev_lidar_tok</span> <span class="o">*</span> <span class="mf">5.0</span>
+</code></pre></div>
+<h3 id="the-magnitude-matching-problem">The magnitude matching problem<a class="headerlink" href="#the-magnitude-matching-problem" title="Permanent link">&para;</a></h3>
+<p>This normalization exists to solve a practical problem: after <code>Conv2d</code> projection, the LiDAR token magnitudes are typically much smaller than the camera BEV embeddings produced by the encoder. Without correction, the LiDAR signal would be drowned out during the concatenation-based fusion. The <code>layer_norm</code> + <code>* 5.0</code> scaling brings LiDAR tokens to roughly the same magnitude as camera tokens, allowing the downstream <code>lidar_fuse_linear</code> layer to meaningfully combine both modalities.</p>
+<p>The encoder-side path does <strong>not</strong> use this scaling because it fuses via deformable cross-attention rather than concatenation -- the attention mechanism naturally handles differing magnitudes through its learned weights.</p>
+<h3 id="projection-modules-by-fusion-mode">Projection modules by fusion mode<a class="headerlink" href="#projection-modules-by-fusion-mode" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Fusion Mode</th>
+<th>Projection Layer</th>
+<th>Extra Normalization</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encoder-side</td>
+<td><code>lidar_encoder_proj</code> (Conv2d 64-&gt;256)</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Decoder-side</td>
+<td><code>lidar_proj</code> (Conv2d 64-&gt;256)</td>
+<td>LayerNorm + scale by 5.0</td>
+</tr>
+<tr>
+<td>Both (<code>encoder_decoder</code>)</td>
+<td>Separate projection for each path</td>
+<td>Decoder path only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="configuration-table">Configuration Table<a class="headerlink" href="#configuration-table" title="Permanent link">&para;</a></h2>
+<p>All PointPillars parameters as configured in <code>bevformer_project.py</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Config Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Voxel size</td>
+<td><code>pts_voxel_layer.voxel_size</code></td>
+<td>[0.2, 0.2, 8]</td>
+</tr>
+<tr>
+<td>Point cloud range</td>
+<td><code>pts_voxel_layer.point_cloud_range</code></td>
+<td>[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]</td>
+</tr>
+<tr>
+<td>Max points per pillar</td>
+<td><code>pts_voxel_layer.max_num_points</code></td>
+<td>20</td>
+</tr>
+<tr>
+<td>Max voxels (train/test)</td>
+<td><code>pts_voxel_layer.max_voxels</code></td>
+<td>(30000, 40000)</td>
+</tr>
+<tr>
+<td>Input channels</td>
+<td><code>pts_voxel_encoder.in_channels</code></td>
+<td>4 (x, y, z, intensity)</td>
+</tr>
+<tr>
+<td>Feature channels</td>
+<td><code>pts_voxel_encoder.feat_channels</code></td>
+<td>[64]</td>
+</tr>
+<tr>
+<td>Distance feature</td>
+<td><code>pts_voxel_encoder.with_distance</code></td>
+<td>False</td>
+</tr>
+<tr>
+<td>Encoder norm</td>
+<td><code>pts_voxel_encoder.norm_cfg</code></td>
+<td>BN1d, eps=1e-3, momentum=0.01</td>
+</tr>
+<tr>
+<td>Scatter input channels</td>
+<td><code>pts_middle_encoder.in_channels</code></td>
+<td>64</td>
+</tr>
+<tr>
+<td>Scatter output shape</td>
+<td><code>pts_middle_encoder.output_shape</code></td>
+<td>(512, 512)</td>
+</tr>
+<tr>
+<td>Grid size (train_cfg)</td>
+<td><code>train_cfg.pts.grid_size</code></td>
+<td>[512, 512, 1]</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-files">Key Files<a class="headerlink" href="#key-files" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>projects/configs/bevformer/bevformer_project.py</code></td>
+<td>PointPillars configuration (<code>pts_voxel_layer</code>, <code>pts_voxel_encoder</code>, <code>pts_middle_encoder</code>)</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/detectors/bevformer.py</code></td>
+<td><code>BEVFormer.extract_pts_feat()</code> -- runs the full PointPillars pipeline</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td><code>PerceptionTransformer</code> -- contains <code>lidar_proj</code>, <code>lidar_encoder_proj</code>, and the magnitude scaling logic</td>
+</tr>
+<tr>
+<td><code>mmdet3d/models/voxel_encoders/pillar_encoder.py</code></td>
+<td><code>PillarFeatureNet</code> implementation</td>
+</tr>
+<tr>
+<td><code>mmdet3d/models/middle_encoders/pillar_scatter.py</code></td>
+<td><code>PointPillarsScatter</code> implementation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>Next: <a href="../04-encoder-fusion/">Chapter 4: Encoder-Side Fusion</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

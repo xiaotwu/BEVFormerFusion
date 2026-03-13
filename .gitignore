@@ -4,4 +4,3 @@ val/
 work_dirs/
 **/__pycache__/
 *.pyc
-site/

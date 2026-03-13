@@ -1,0 +1,1395 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer">
+      
+      
+      
+      
+        <link rel="prev" href="../03-lidar-branch/">
+      
+      
+        <link rel="next" href="../05-decoder-fusion/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Encoder Fusion - BEVFormerFusion Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chapter-4-encoder-side-fusion" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BEVFormerFusion Docs" class="md-header__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BEVFormerFusion Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Encoder Fusion
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BEVFormerFusion Docs" class="md-nav__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BEVFormerFusion Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-data-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-camera-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-lidar-branch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LiDAR Branch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Encoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-encoder-layer-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Encoder Layer Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-temporal-self-attention-tsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Temporal Self-Attention (TSA)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-camera-spatial-cross-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Camera Spatial Cross-Attention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-lidar-spatial-cross-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. LiDAR Spatial Cross-Attention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-learnable-blend-weight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Learnable Blend Weight
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-bev-reference-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. BEV Reference Points
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. BEV Reference Points">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ref_3d-pillar-heights-for-camera-sca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ref_3d --- Pillar heights for camera SCA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ref_2d-flat-bev-grid-for-tsa-and-lidar-sca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ref_2d --- Flat BEV grid for TSA and LiDAR SCA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#point_sampling-3d-to-image-projection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        point_sampling --- 3D to image projection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-4-layer-encoder-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 4-Layer Encoder Loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-decoder-fusion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decoder Fusion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-transformer-decoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformer Decoder
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-detection-heads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detection Heads
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-loss-and-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loss & Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-inference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendices
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendices
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-tensor-shapes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor Shapes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../appendix-file-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-encoder-layer-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Encoder Layer Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-temporal-self-attention-tsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Temporal Self-Attention (TSA)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-camera-spatial-cross-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Camera Spatial Cross-Attention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-lidar-spatial-cross-attention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. LiDAR Spatial Cross-Attention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-learnable-blend-weight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Learnable Blend Weight
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-bev-reference-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. BEV Reference Points
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. BEV Reference Points">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ref_3d-pillar-heights-for-camera-sca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ref_3d --- Pillar heights for camera SCA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ref_2d-flat-bev-grid-for-tsa-and-lidar-sca" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ref_2d --- Flat BEV grid for TSA and LiDAR SCA
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#point_sampling-3d-to-image-projection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        point_sampling --- 3D to image projection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-4-layer-encoder-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 4-Layer Encoder Loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Key Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chapter-4-encoder-side-fusion">Chapter 4: Encoder-Side Fusion<a class="headerlink" href="#chapter-4-encoder-side-fusion" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>The heart of BEVFormerFusion --- where camera and LiDAR information merge inside the BEV encoder through dual spatial cross-attention and learnable blending.</p>
+</blockquote>
+<hr />
+<p><strong>Navigation</strong>:
+<a href="../00-overview/">Ch 0 -- Overview</a> |
+<a href="../01-data-pipeline/">Ch 1 -- Data Pipeline</a> |
+<a href="../02-camera-branch/">Ch 2 -- Camera</a> |
+<a href="../03-lidar-branch/">Ch 3 -- LiDAR</a> |
+<a href="./">Ch 4 -- Encoder Fusion</a> |
+<a href="../05-decoder-fusion/">Ch 5 -- Decoder Fusion</a> |
+<a href="../06-transformer-decoder/">Ch 6 -- Decoder</a> |
+<a href="../07-detection-heads/">Ch 7 -- Heads</a> |
+<a href="../08-loss-and-training/">Ch 8 -- Loss &amp; Training</a> |
+<a href="../09-inference/">Ch 9 -- Inference</a> |
+<a href="../appendix-tensor-shapes/">Appendix A</a> |
+<a href="../appendix-file-map/">Appendix B</a></p>
+<hr />
+<h2 id="1-overview">1. Overview<a class="headerlink" href="#1-overview" title="Permanent link">&para;</a></h2>
+<p>The BEV encoder consists of <strong>4 stacked layers</strong>, each refining a shared set of BEV queries. In the fusion-enabled configuration, each layer is an instance of <code>MM_BEVFormerLayer</code> (as opposed to the camera-only <code>BEVFormerLayer</code>). The operation order within every layer is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>self_attn -&gt; norm -&gt; cross_attn -&gt; norm -&gt; ffn -&gt; norm
+</code></pre></div>
+<p>which maps to:</p>
+<ol>
+<li><strong>Temporal Self-Attention (TSA)</strong> --- align current BEV queries with the previous frame.</li>
+<li><strong>LayerNorm</strong></li>
+<li><strong>Dual Spatial Cross-Attention</strong> --- camera SCA and LiDAR SCA run in parallel, then blend.</li>
+<li><strong>LayerNorm</strong></li>
+<li><strong>Feed-Forward Network (FFN)</strong></li>
+<li><strong>LayerNorm</strong></li>
+</ol>
+<p>The key difference from vanilla BEVFormer is step 3: instead of a single camera SCA, <code>MM_BEVFormerLayer</code> runs two cross-attention branches and merges their outputs with a learnable scalar weight.</p>
+<hr />
+<h2 id="2-encoder-layer-architecture">2. Encoder Layer Architecture<a class="headerlink" href="#2-encoder-layer-architecture" title="Permanent link">&para;</a></h2>
+<p>The following diagram shows one complete <code>MM_BEVFormerLayer</code>. Subgraphs group the three major stages.</p>
+<pre class="mermaid"><code>graph TD
+    classDef cam fill:#4a90d9,stroke:#2c5f8a,color:#fff
+    classDef lidar fill:#6ab04c,stroke:#3d7a2a,color:#fff
+    classDef blend fill:#f0932b,stroke:#c06f1a,color:#fff
+    classDef norm fill:#dfe6e9,stroke:#b2bec3,color:#333
+    classDef ffn fill:#a29bfe,stroke:#6c5ce7,color:#fff
+
+    INPUT["BEV Query&lt;br/&gt;(B, HW, C)"] --&gt; TSA_SUB
+
+    subgraph TSA_SUB["Temporal Self-Attention"]
+        direction TB
+        PREV["prev_bev&lt;br/&gt;(frozen from last frame)"]
+        CUR["current query"]
+        INPUT2["query"] --&gt; CUR
+        CUR &amp; PREV --&gt; CAT["Concatenate along channel&lt;br/&gt;for offset &amp; weight prediction"]
+        CUR &amp; PREV --&gt; STACK["Stack as deformable&lt;br/&gt;attention value (2 frames)"]
+        CAT --&gt; OFFSETS["Predict sampling offsets&lt;br/&gt;&amp; attention weights"]
+        OFFSETS --&gt; DEFORM_TSA["Deformable Attention&lt;br/&gt;on stacked BEV frames"]
+        STACK --&gt; DEFORM_TSA
+        DEFORM_TSA --&gt; TMEAN["Temporal mean&lt;br/&gt;over 2 frames"]
+        TMEAN --&gt; RESID_TSA["+ residual"]
+    end
+
+    RESID_TSA --&gt; NORM1["LayerNorm"]:::norm
+
+    NORM1 --&gt; SCA_SUB
+
+    subgraph SCA_SUB["Dual Spatial Cross-Attention"]
+        direction TB
+        Q_IN["query"] --&gt; CAM_PATH &amp; LIDAR_PATH
+
+        subgraph CAM_PATH["Camera SCA"]
+            direction TB
+            PROJ["Project BEV ref points&lt;br/&gt;to image coords via lidar2img"]
+            VIS["Visibility masking&lt;br/&gt;(which queries seen by which cameras)"]
+            REBATCH["Sparse re-batching&lt;br/&gt;(only visible queries per camera)"]
+            MSDA["MSDeformableAttention3D&lt;br/&gt;pillar heights + deformable offsets&lt;br/&gt;+ multi-level FPN sampling"]
+            SCATTER["Scatter-add back to&lt;br/&gt;BEV grid, average over cameras"]
+            OUT_PROJ_CAM["Output projection + residual"]
+            PROJ --&gt; VIS --&gt; REBATCH --&gt; MSDA --&gt; SCATTER --&gt; OUT_PROJ_CAM
+        end
+
+        subgraph LIDAR_PATH["LiDAR SCA"]
+            direction TB
+            LREF["BEV grid reference points"]
+            LDEFORM["CustomMSDeformableAttention&lt;br/&gt;on LiDAR BEV tokens&lt;br/&gt;(1 level, 4 points, 8 heads)"]
+            LREF --&gt; LDEFORM
+        end
+
+        OUT_PROJ_CAM --&gt; BLEND["Learnable Blend&lt;br/&gt;cam * w + lidar * (1-w)"]
+        LDEFORM --&gt; BLEND
+    end
+
+    CAM_PATH:::cam
+    LIDAR_PATH:::lidar
+    BLEND:::blend
+
+    BLEND --&gt; NORM2["LayerNorm"]:::norm
+    NORM2 --&gt; FFN_BLOCK["FFN&lt;br/&gt;(Linear -&gt; ReLU -&gt; Linear)"]:::ffn
+    FFN_BLOCK --&gt; NORM3["LayerNorm"]:::norm
+    NORM3 --&gt; OUTPUT["Output to next layer&lt;br/&gt;(B, HW, C)"]</code></pre>
+<hr />
+<h2 id="3-temporal-self-attention-tsa">3. Temporal Self-Attention (TSA)<a class="headerlink" href="#3-temporal-self-attention-tsa" title="Permanent link">&para;</a></h2>
+<p>TSA allows BEV queries to look at where objects were in the previous frame, enabling motion-aware features. The first frame of a scene has no history and skips TSA entirely (the query passes through unchanged).</p>
+<pre class="mermaid"><code>graph TD
+    classDef input fill:#74b9ff,stroke:#0984e3,color:#333
+    classDef process fill:#dfe6e9,stroke:#b2bec3,color:#333
+    classDef output fill:#55efc4,stroke:#00b894,color:#333
+
+    CUR_BEV["Current BEV Query&lt;br/&gt;(B, HW, C)"]:::input
+    PREV_BEV["Previous BEV&lt;br/&gt;(B, HW, C) -- detached"]:::input
+
+    CUR_BEV &amp; PREV_BEV --&gt; CONCAT["Concatenate along channel dim&lt;br/&gt;-&gt; (B, HW, 2C)"]:::process
+
+    CONCAT --&gt; OFFSETS["sampling_offsets Linear(2C -&gt; ...)&lt;br/&gt;Predict where to sample on BEV grid"]:::process
+    CONCAT --&gt; WEIGHTS["attention_weights Linear(2C -&gt; ...)&lt;br/&gt;Predict per-point attention weights"]:::process
+
+    CUR_BEV &amp; PREV_BEV --&gt; VALUE_STACK["Stack as value&lt;br/&gt;-&gt; (B*2, HW, C)"]:::process
+
+    VALUE_STACK --&gt; VPROJ["value_proj Linear(C -&gt; C)"]:::process
+
+    OFFSETS &amp; WEIGHTS &amp; VPROJ --&gt; DEFORM["MS Deformable Attention&lt;br/&gt;spatial_shapes = [[H, W]]&lt;br/&gt;Samples both frames independently"]:::process
+
+    DEFORM --&gt; FUSE["Temporal mean over 2 frames&lt;br/&gt;(B*2, HW, C) -&gt; (B, HW, C)"]:::process
+
+    FUSE --&gt; OUT_PROJ["output_proj Linear(C -&gt; C)"]:::process
+
+    OUT_PROJ --&gt; RESIDUAL["+ identity (residual)"]:::output
+
+    SKIP["First frame: no prev_bev&lt;br/&gt;-&gt; skip TSA, return identity"] -.-&gt; RESIDUAL</code></pre>
+<p><strong>Key design insight</strong>: The offset and weight prediction networks take <code>2C</code>-dimensional input (the concatenation of current and previous BEV features). This allows the network to reason about temporal differences --- if an object moved between frames, the difference in features at that location tells the network where to look in the previous frame.</p>
+<hr />
+<h2 id="4-camera-spatial-cross-attention">4. Camera Spatial Cross-Attention<a class="headerlink" href="#4-camera-spatial-cross-attention" title="Permanent link">&para;</a></h2>
+<p>Camera SCA is the mechanism that lifts 2D image features into the 3D BEV grid. Each BEV query learns to attend to relevant image regions across all cameras.</p>
+<pre class="mermaid"><code>graph TD
+    classDef cam fill:#4a90d9,stroke:#2c5f8a,color:#fff
+    classDef process fill:#dfe6e9,stroke:#b2bec3,color:#333
+    classDef output fill:#55efc4,stroke:#00b894,color:#333
+
+    BEV_Q["BEV Query (B, HW, C)"]:::cam
+    REF3D["3D Reference Points&lt;br/&gt;(4 pillar heights per BEV cell)"]
+
+    REF3D --&gt; POINT_SAMPLE["point_sampling:&lt;br/&gt;multiply by lidar2img (4x4)&lt;br/&gt;-&gt; project to each camera's image plane"]:::process
+
+    POINT_SAMPLE --&gt; REF_CAM["reference_points_cam&lt;br/&gt;(B, HW, N_cam, 4, 2)&lt;br/&gt;normalized image coords"]:::process
+    POINT_SAMPLE --&gt; MASK["bev_mask&lt;br/&gt;(B, N_cam, HW)&lt;br/&gt;which queries are visible per camera"]:::process
+
+    MASK --&gt; SPARSE["Sparse re-batching:&lt;br/&gt;select only visible queries per camera&lt;br/&gt;(avoids wasting compute on occluded cells)"]:::process
+    BEV_Q --&gt; SPARSE
+    REF_CAM --&gt; SPARSE
+
+    SPARSE --&gt; QUERIES_PER_CAM["Per-camera query subsets&lt;br/&gt;(B * N_cam, max_len, C)"]:::process
+
+    FPN["Multi-level FPN features&lt;br/&gt;(per camera, per level)"]:::cam
+
+    QUERIES_PER_CAM &amp; FPN --&gt; MSDA3D["MSDeformableAttention3D:&lt;br/&gt;4 pillar-height anchors per query&lt;br/&gt;x num_points deformable offsets&lt;br/&gt;x 4 FPN levels&lt;br/&gt;= dense multi-scale sampling"]:::process
+
+    MSDA3D --&gt; SCATTER["Scatter-add results&lt;br/&gt;back to full BEV grid"]:::process
+
+    SCATTER --&gt; AVG["Average over cameras&lt;br/&gt;that see each query"]:::process
+
+    AVG --&gt; OUTPROJ["Output projection&lt;br/&gt;Linear(C -&gt; C)"]:::process
+
+    OUTPROJ --&gt; RESID["+ residual (input query)"]:::output</code></pre>
+<p>The sparse re-batching step is critical for efficiency: a rear-facing camera sees at most ~25% of the BEV grid, so processing only visible queries per camera avoids significant wasted computation.</p>
+<p><strong>MSDeformableAttention3D</strong> operates with <code>num_Z_anchors</code> (default 4) reference points per query, stacked vertically at different heights along the pillar. For each anchor, the network predicts <code>num_points</code> offsets across <code>num_levels</code> FPN levels. The total sampling budget per query per camera is <code>4 heights * num_points * 4 levels</code>.</p>
+<hr />
+<h2 id="5-lidar-spatial-cross-attention">5. LiDAR Spatial Cross-Attention<a class="headerlink" href="#5-lidar-spatial-cross-attention" title="Permanent link">&para;</a></h2>
+<p>The LiDAR SCA branch is intentionally simple. Since LiDAR BEV tokens already live in the same BEV coordinate frame as the queries, no 3D-to-2D projection is needed.</p>
+<pre class="mermaid"><code>graph TD
+    classDef lidar fill:#6ab04c,stroke:#3d7a2a,color:#fff
+    classDef process fill:#dfe6e9,stroke:#b2bec3,color:#333
+    classDef output fill:#55efc4,stroke:#00b894,color:#333
+
+    BEV_Q["BEV Query&lt;br/&gt;(B, HW, C)"]:::lidar
+    LIDAR_TOK["LiDAR BEV Tokens&lt;br/&gt;(B, HW, C)&lt;br/&gt;pre-projected by lidar_encoder_proj"]:::lidar
+    REF2D["BEV Grid Reference Points&lt;br/&gt;(B, HW, 1, 2)"]
+
+    BEV_Q &amp; LIDAR_TOK &amp; REF2D --&gt; DEFORM["CustomMSDeformableAttention&lt;br/&gt;1 BEV level | 4 deformable points | 8 heads"]:::process
+
+    DEFORM --&gt; OUT["LiDAR SCA output&lt;br/&gt;(B, HW, C)"]:::output</code></pre>
+<p>Configuration:
+- <strong>1 spatial level</strong> (flat BEV grid, no multi-scale)
+- <strong>4 deformable sampling points</strong> per head
+- <strong>8 attention heads</strong>
+- Uses <code>ref_2d</code> (the same 2D BEV grid coordinates used by TSA)</p>
+<p>The LiDAR BEV tokens are produced upstream in <code>PerceptionTransformer.get_bev_features</code> by a <code>1x1 Conv2d</code> (<code>lidar_encoder_proj</code>) that maps the raw LiDAR BEV feature map (64 channels from the PointPillars backbone) to the model dimension (256), followed by spatial interpolation to match the BEV grid resolution.</p>
+<hr />
+<h2 id="6-learnable-blend-weight">6. Learnable Blend Weight<a class="headerlink" href="#6-learnable-blend-weight" title="Permanent link">&para;</a></h2>
+<p>The outputs of camera SCA and LiDAR SCA are fused with a single learnable scalar per layer:</p>
+<pre class="mermaid"><code>graph LR
+    classDef cam fill:#4a90d9,stroke:#2c5f8a,color:#fff
+    classDef lidar fill:#6ab04c,stroke:#3d7a2a,color:#fff
+    classDef blend fill:#f0932b,stroke:#c06f1a,color:#fff
+
+    CAM_OUT["Camera SCA output"]:::cam
+    LIDAR_OUT["LiDAR SCA output"]:::lidar
+
+    CAM_OUT --&gt; MUL_C["* w"]
+    LIDAR_OUT --&gt; MUL_L["* (1 - w)"]
+
+    LOGIT["cross_model_weights_logit&lt;br/&gt;nn.Parameter(scalar)&lt;br/&gt;init = 0.0"] --&gt; SIGMOID["sigmoid -&gt; w"]:::blend
+    SIGMOID --&gt; MUL_C
+    SIGMOID --&gt; MUL_L
+
+    MUL_C --&gt; ADD["query = cam*w + lidar*(1-w)"]:::blend
+    MUL_L --&gt; ADD</code></pre>
+<p><strong>Implementation detail</strong> (from <code>MM_BEVFormerLayer.__init__</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="bp">self</span><span class="o">.</span><span class="n">cross_model_weights_logit</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>At initialization, <code>sigmoid(0.0) = 0.5</code>, so both modalities contribute equally. During training, each of the 4 encoder layers learns its own weight independently.</p>
+<p><strong>Design rationale</strong>: This is a minimum-parameter approach to modality blending --- just one scalar per layer (4 total for the encoder). It avoids the risk of overfitting that comes with more complex gating mechanisms while still letting the network learn the optimal balance between camera texture and LiDAR geometry at each depth of the encoder. If the LiDAR branch provides no value for a particular layer, the weight can shift toward <code>w = 1.0</code> (camera-only); conversely, layers that benefit from geometric precision can increase the LiDAR contribution.</p>
+<p>When <code>lidar_bev_tokens</code> is <code>None</code> (camera-only inference), the LiDAR branch is skipped entirely and the camera output is used directly without any blending.</p>
+<hr />
+<h2 id="7-bev-reference-points">7. BEV Reference Points<a class="headerlink" href="#7-bev-reference-points" title="Permanent link">&para;</a></h2>
+<p>The encoder uses two types of reference points, generated once and shared across all 4 layers:</p>
+<h3 id="ref_3d-pillar-heights-for-camera-sca">ref_3d --- Pillar heights for camera SCA<a class="headerlink" href="#ref_3d-pillar-heights-for-camera-sca" title="Permanent link">&para;</a></h3>
+<p>Generated by <code>BEVFormerEncoder.get_reference_points(dim='3d')</code>:
+- For each BEV cell, create <code>num_points_in_pillar</code> (default 4) points spaced evenly along the Z axis.
+- Each point is in normalized <code>[0, 1]</code> coordinates within the configured <code>pc_range</code>.
+- These are then projected to image coordinates via <code>point_sampling</code>, which applies the <code>lidar2img</code> (4x4) transformation matrices to map each 3D point onto each camera's image plane.
+- The resulting <code>reference_points_cam</code> and <code>bev_mask</code> tell camera SCA where to look and which queries are visible.</p>
+<h3 id="ref_2d-flat-bev-grid-for-tsa-and-lidar-sca">ref_2d --- Flat BEV grid for TSA and LiDAR SCA<a class="headerlink" href="#ref_2d-flat-bev-grid-for-tsa-and-lidar-sca" title="Permanent link">&para;</a></h3>
+<p>Generated by <code>BEVFormerEncoder.get_reference_points(dim='2d')</code>:
+- A simple normalized meshgrid over the BEV plane: <code>(x, y)</code> in <code>[0, 1]</code>.
+- Used as reference points for both Temporal Self-Attention (sampling locations on the BEV grid) and LiDAR SCA (deformable attention anchors).</p>
+<h3 id="point_sampling-3d-to-image-projection">point_sampling --- 3D to image projection<a class="headerlink" href="#point_sampling-3d-to-image-projection" title="Permanent link">&para;</a></h3>
+<p>The <code>point_sampling</code> method:
+1. Scales normalized reference points back to metric coordinates using <code>pc_range</code>.
+2. Appends a homogeneous coordinate (<code>1</code>).
+3. Multiplies by each camera's <code>lidar2img</code> matrix to get pixel coordinates.
+4. Normalizes by depth (perspective divide).
+5. Creates <code>bev_mask</code> by checking which projected points fall within image bounds and have positive depth.</p>
+<hr />
+<h2 id="8-4-layer-encoder-loop">8. 4-Layer Encoder Loop<a class="headerlink" href="#8-4-layer-encoder-loop" title="Permanent link">&para;</a></h2>
+<p>The encoder runs the same sequence of operations 4 times. The BEV query is refined progressively, while <code>prev_bev</code> remains frozen throughout.</p>
+<pre class="mermaid"><code>graph LR
+    classDef layer fill:#a29bfe,stroke:#6c5ce7,color:#fff
+    classDef data fill:#dfe6e9,stroke:#b2bec3,color:#333
+
+    INIT["Initial BEV Query&lt;br/&gt;(from learnable embedding&lt;br/&gt;+ CAN bus)"]:::data
+    PREV["prev_bev&lt;br/&gt;(frozen, same for all layers)"]:::data
+
+    INIT --&gt; L0["MM_BEVFormerLayer 0"]:::layer
+    L0 --&gt; L1["MM_BEVFormerLayer 1"]:::layer
+    L1 --&gt; L2["MM_BEVFormerLayer 2"]:::layer
+    L2 --&gt; L3["MM_BEVFormerLayer 3"]:::layer
+    L3 --&gt; OUT["Encoder Output&lt;br/&gt;(B, HW, C)"]:::data
+
+    PREV -.-&gt; L0
+    PREV -.-&gt; L1
+    PREV -.-&gt; L2
+    PREV -.-&gt; L3
+
+    CAM["Camera FPN Features"]:::data -.-&gt; L0 &amp; L1 &amp; L2 &amp; L3
+    LID["LiDAR BEV Tokens"]:::data -.-&gt; L0 &amp; L1 &amp; L2 &amp; L3</code></pre>
+<p>Key points:
+- The query output of each layer becomes the query input of the next layer.
+- <code>prev_bev</code> is the encoder output from the <strong>previous timestep</strong>, detached from the computation graph (no gradient flows back in time).
+- Camera FPN features and LiDAR BEV tokens are shared across all layers (computed once upstream).
+- Reference points (<code>ref_2d</code>, <code>ref_3d</code>, <code>reference_points_cam</code>, <code>bev_mask</code>) are also computed once and reused.</p>
+<hr />
+<h2 id="9-key-files">9. Key Files<a class="headerlink" href="#9-key-files" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Class / Function</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>projects/.../modules/encoder.py</code></td>
+<td><code>BEVFormerEncoder</code></td>
+<td>Encoder loop: generates reference points, runs 4 layers</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/encoder.py</code></td>
+<td><code>MM_BEVFormerLayer</code></td>
+<td>Fusion-enabled encoder layer with dual SCA + blend</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/encoder.py</code></td>
+<td><code>BEVFormerLayer</code></td>
+<td>Camera-only encoder layer (no LiDAR branch)</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/spatial_cross_attention.py</code></td>
+<td><code>SpatialCrossAttention</code></td>
+<td>Camera SCA: projection, sparse rebatch, scatter-add</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/spatial_cross_attention.py</code></td>
+<td><code>MSDeformableAttention3D</code></td>
+<td>Inner deformable attention with pillar-height anchors</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/temporal_self_attention.py</code></td>
+<td><code>TemporalSelfAttention</code></td>
+<td>TSA: temporal deformable attention over BEV frame pairs</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/transformer.py</code></td>
+<td><code>PerceptionTransformer</code></td>
+<td>Orchestrates encoder + decoder; prepares LiDAR tokens</td>
+</tr>
+<tr>
+<td><code>projects/.../modules/decoder.py</code></td>
+<td><code>CustomMSDeformableAttention</code></td>
+<td>Deformable attention used by LiDAR SCA branch</td>
+</tr>
+</tbody>
+</table>
+<p>All paths are relative to the repository root under <code>projects/mmdet3d_plugin/bevformer/</code>.</p>
+<hr />
+<p><strong>Navigation</strong>:
+<a href="../00-overview/">Ch 0 -- Overview</a> |
+<a href="../01-data-pipeline/">Ch 1 -- Data Pipeline</a> |
+<a href="../02-camera-branch/">Ch 2 -- Camera</a> |
+<a href="../03-lidar-branch/">Ch 3 -- LiDAR</a> |
+<a href="./">Ch 4 -- Encoder Fusion</a> |
+<a href="../05-decoder-fusion/">Ch 5 -- Decoder Fusion</a> |
+<a href="../06-transformer-decoder/">Ch 6 -- Decoder</a> |
+<a href="../07-detection-heads/">Ch 7 -- Heads</a> |
+<a href="../08-loss-and-training/">Ch 8 -- Loss &amp; Training</a> |
+<a href="../09-inference/">Ch 9 -- Inference</a> |
+<a href="../appendix-tensor-shapes/">Appendix A</a> |
+<a href="../appendix-file-map/">Appendix B</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
