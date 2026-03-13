@@ -28,6 +28,7 @@ theme:
     - content.code.copy
 
 nav:
+  - Home: index.md
   - Architecture Overview: 00-overview.md
   - Data Pipeline: 01-data-pipeline.md
   - Camera Branch: 02-camera-branch.md
