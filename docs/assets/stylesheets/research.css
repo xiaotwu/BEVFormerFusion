@@ -21,6 +21,23 @@
   color: var(--rf-ink);
 }
 
+[data-md-color-scheme="slate"] {
+  --rf-bg: #0d1420;
+  --rf-panel: rgba(18, 27, 41, 0.92);
+  --rf-ink: #f4efe5;
+  --rf-muted: #b9c4d4;
+  --rf-line: rgba(232, 238, 246, 0.14);
+  --rf-shadow: 0 24px 60px rgba(0, 0, 0, 0.26);
+}
+
+[data-md-color-scheme="slate"] body {
+  background:
+    radial-gradient(circle at top right, rgba(187, 107, 44, 0.16), transparent 30%),
+    radial-gradient(circle at left 20%, rgba(19, 111, 99, 0.16), transparent 28%),
+    var(--rf-bg);
+  color: var(--rf-ink);
+}
+
 .md-typeset h1,
 .md-typeset h2,
 .md-typeset h3,
@@ -196,6 +213,10 @@
   background: rgba(19, 111, 99, 0.08);
 }
 
+[data-md-color-scheme="slate"] .md-typeset .comparison-callout {
+  background: rgba(19, 111, 99, 0.14);
+}
+
 .md-typeset .comparison-callout p:last-child {
   margin-bottom: 0;
 }
@@ -228,6 +249,14 @@
   font-weight: 700;
 }
 
+[data-md-color-scheme="slate"] .md-typeset table.research-table {
+  background: rgba(18, 27, 41, 0.9);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table.research-table th {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .md-typeset table.research-table tr:last-child td {
   border-bottom: 0;
 }
@@ -258,6 +287,18 @@
   color: #184d46;
 }
 
+[data-md-color-scheme="slate"] .md-typeset .pending-note {
+  border-color: rgba(219, 157, 90, 0.4);
+  background: rgba(187, 107, 44, 0.16);
+  color: #f4dcc1;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .provenance-note {
+  border-color: rgba(77, 192, 171, 0.34);
+  background: rgba(19, 111, 99, 0.18);
+  color: #c5f2eb;
+}
+
 .md-typeset .curve-frame {
   margin: 1.2rem 0 1.8rem;
   padding: 1rem;
@@ -265,6 +306,10 @@
   border-radius: 1.15rem;
   background: rgba(255, 255, 255, 0.86);
   box-shadow: var(--rf-shadow);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .curve-frame {
+  background: rgba(18, 27, 41, 0.92);
 }
 
 .md-typeset .curve-frame svg {
@@ -309,6 +354,13 @@
   box-shadow: var(--rf-shadow);
 }
 
+[data-md-color-scheme="slate"] .md-typeset .doc-card,
+[data-md-color-scheme="slate"] .md-typeset .section-shell,
+[data-md-color-scheme="slate"] .md-typeset .metric-card,
+[data-md-color-scheme="slate"] .md-typeset .insight-card {
+  background: var(--rf-panel);
+}
+
 .md-typeset .doc-card a {
   font-weight: 700;
   color: var(--rf-ink);
@@ -325,6 +377,11 @@
   border-radius: 0.95rem;
   border-left: 4px solid var(--rf-copper);
   background: rgba(187, 107, 44, 0.08);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .legacy-note {
+  background: rgba(187, 107, 44, 0.14);
+  color: #f4dcc1;
 }
 
 @media screen and (max-width: 76.1875em) {
