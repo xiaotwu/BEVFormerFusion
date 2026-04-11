@@ -768,6 +768,42 @@
 </tr>
 </tbody>
 </table>
+<pre class="mermaid"><code>flowchart LR
+    accTitle: BEVFormer Versus BEVFormerFusion
+    accDescr: The official BEVFormer path is camera-only, while BEVFormerFusion adds PointPillars LiDAR BEV, multi-modal encoder fusion, decoder fusion, and a dedicated velocity head.
+
+    subgraph baseline["Official BEVFormer"]
+        cam_b["Multi-view images"]
+        enc_b["BEVFormerLayer&lt;br/&gt;camera attention only"]
+        dec_b["Decoder on encoder BEV"]
+        head_b["Shared class / box / yaw / velocity head"]
+        cam_b --&gt; enc_b --&gt; dec_b --&gt; head_b
+    end
+
+    subgraph fusion["BEVFormerFusion"]
+        cam_f["Multi-view images"]
+        lidar_f["LiDAR points"]
+        pillars_f["PointPillars LiDAR BEV"]
+        enc_f["MM_BEVFormerLayer&lt;br/&gt;camera + LiDAR attention"]
+        dec_f["Decoder fusion&lt;br/&gt;concat + project"]
+        cam_bev_f["Camera-path BEV snapshot"]
+        head_f["Class + box + yaw heads"]
+        vel_f["Dedicated velocity head"]
+        cam_f --&gt; enc_f
+        lidar_f --&gt; pillars_f --&gt; enc_f
+        enc_f --&gt; dec_f
+        pillars_f --&gt; dec_f
+        enc_f --&gt; cam_bev_f --&gt; vel_f
+        dec_f --&gt; head_f
+    end
+
+    classDef baseline_style fill:#f8f1e4,stroke:#bb6b2c,color:#15263b
+    classDef fusion_style fill:#e5f4ef,stroke:#136f63,color:#15263b
+
+    class cam_b,enc_b,dec_b,head_b baseline_style
+    class cam_f,lidar_f,pillars_f,enc_f,dec_f,cam_bev_f,head_f,vel_f fusion_style</code></pre>
+<p class="diagram-note"><em>Figure: The comparison diagram isolates the method-level differences behind the table: LiDAR enters only in the fusion path, affects both encoder and decoder BEV representations, and leaves motion estimation on a separate camera-path branch.</em></p>
+
 <h2 id="new-modules-and-modified-attention-paths">New modules and modified attention paths<a class="headerlink" href="#new-modules-and-modified-attention-paths" title="Permanent link">&para;</a></h2>
 <h3 id="new-modules">New modules<a class="headerlink" href="#new-modules" title="Permanent link">&para;</a></h3>
 <ul>
@@ -851,6 +887,10 @@
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../assets/javascripts/mermaid-init.js"></script>
       
         <script src="../assets/javascripts/metrics.js"></script>
       

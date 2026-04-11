@@ -25,6 +25,45 @@ This comparison is restricted to two sources: the official `fundamentalvision/BE
 | Velocity supervision | Velocity predicted in the box regression branch | Dedicated velocity cross-attention head on `bev_embed_cam`; box velocity weights zeroed | Architectural modification | Decouples motion estimation from the LiDAR-heavy decoder representation. |
 | Temporal history execution | Standard `prev_bev` path | `obtain_history_bev()` runs history in eval mode with no gradients and caches by scene key | Efficiency and memory change | Avoids backpropagating through history frames while preserving temporal context. |
 
+```mermaid
+flowchart LR
+    accTitle: BEVFormer Versus BEVFormerFusion
+    accDescr: The official BEVFormer path is camera-only, while BEVFormerFusion adds PointPillars LiDAR BEV, multi-modal encoder fusion, decoder fusion, and a dedicated velocity head.
+
+    subgraph baseline["Official BEVFormer"]
+        cam_b["Multi-view images"]
+        enc_b["BEVFormerLayer<br/>camera attention only"]
+        dec_b["Decoder on encoder BEV"]
+        head_b["Shared class / box / yaw / velocity head"]
+        cam_b --> enc_b --> dec_b --> head_b
+    end
+
+    subgraph fusion["BEVFormerFusion"]
+        cam_f["Multi-view images"]
+        lidar_f["LiDAR points"]
+        pillars_f["PointPillars LiDAR BEV"]
+        enc_f["MM_BEVFormerLayer<br/>camera + LiDAR attention"]
+        dec_f["Decoder fusion<br/>concat + project"]
+        cam_bev_f["Camera-path BEV snapshot"]
+        head_f["Class + box + yaw heads"]
+        vel_f["Dedicated velocity head"]
+        cam_f --> enc_f
+        lidar_f --> pillars_f --> enc_f
+        enc_f --> dec_f
+        pillars_f --> dec_f
+        enc_f --> cam_bev_f --> vel_f
+        dec_f --> head_f
+    end
+
+    classDef baseline_style fill:#f8f1e4,stroke:#bb6b2c,color:#15263b
+    classDef fusion_style fill:#e5f4ef,stroke:#136f63,color:#15263b
+
+    class cam_b,enc_b,dec_b,head_b baseline_style
+    class cam_f,lidar_f,pillars_f,enc_f,dec_f,cam_bev_f,head_f,vel_f fusion_style
+```
+
+<p class="diagram-note"><em>Figure: The comparison diagram isolates the method-level differences behind the table: LiDAR enters only in the fusion path, affects both encoder and decoder BEV representations, and leaves motion estimation on a separate camera-path branch.</em></p>
+
 ## New modules and modified attention paths
 
 ### New modules

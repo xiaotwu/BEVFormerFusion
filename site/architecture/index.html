@@ -844,6 +844,42 @@
 <p>BEVFormerFusion is a BEVFormer-derived multi-modal detector that keeps the upstream camera-to-BEV scaffold and adds a PointPillars LiDAR branch, dual-stage fusion, and a dedicated motion head. The active method scope is defined by <code>projects/configs/bevformer/bevformer_project.py</code>, <code>projects/mmdet3d_plugin/bevformer/detectors/bevformer.py</code>, <code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code>, <code>projects/mmdet3d_plugin/bevformer/modules/encoder.py</code>, <code>projects/mmdet3d_plugin/bevformer/dense_heads/bevformer_head.py</code>, and <code>projects/mmdet3d_plugin/datasets/nuscenes_dataset.py</code>.</p>
 <h2 id="method-summary">Method summary<a class="headerlink" href="#method-summary" title="Permanent link">&para;</a></h2>
 <p>The detector starts from the standard BEVFormer camera path: multi-view images pass through ResNet-50 and FPN, BEV queries are updated by temporal self-attention, and camera spatial cross-attention lifts 2D features into the BEV grid. BEVFormerFusion then adds a LiDAR branch that voxelizes point clouds into PointPillars features, projects them into the BEV token space, and injects them twice: inside each encoder layer through a LiDAR deformable-attention branch and after the encoder through a concatenate-and-project block. The detection head separates box, yaw, and velocity supervision, with velocity predicted from the pre-fusion BEV snapshot rather than the fused decoder input.</p>
+<pre class="mermaid"><code>flowchart LR
+    accTitle: BEVFormerFusion Architecture Overview
+    accDescr: Multi-view camera features and LiDAR point clouds are converted into BEV representations, fused inside the encoder and again before the decoder, and finally decoded into detection, orientation, and velocity outputs.
+
+    camera["Multi-view images"]
+    lidar["LiDAR point clouds"]
+    backbone["ResNet-50 + FPN"]
+    temporal["Temporal self-attention&lt;br/&gt;with prev_bev"]
+    camera_cross["Camera spatial cross-attention"]
+    pillars["PointPillars LiDAR BEV"]
+    encoder_fusion["MM_BEVFormerLayer&lt;br/&gt;camera + LiDAR fusion"]
+    camera_bev["Camera-path BEV snapshot&lt;br/&gt;bev_embed_cam"]
+    decoder_fusion["Decoder fusion&lt;br/&gt;concat + project"]
+    decoder["Detection transformer decoder"]
+    box_heads["Class + box + yaw heads"]
+    velocity_head["Dedicated velocity head"]
+
+    camera --&gt; backbone --&gt; temporal --&gt; camera_cross --&gt; encoder_fusion
+    lidar --&gt; pillars --&gt; encoder_fusion
+    encoder_fusion --&gt; camera_bev
+    encoder_fusion --&gt; decoder_fusion
+    pillars --&gt; decoder_fusion
+    decoder_fusion --&gt; decoder --&gt; box_heads
+    camera_bev --&gt; velocity_head
+
+    classDef input fill:#e7f1ff,stroke:#3d6aa2,color:#15263b
+    classDef process fill:#f8f1e4,stroke:#bb6b2c,color:#15263b
+    classDef fusion fill:#e5f4ef,stroke:#136f63,color:#15263b
+    classDef output fill:#f3e8ff,stroke:#7c3aed,color:#15263b
+
+    class camera,lidar input
+    class backbone,temporal,camera_cross,pillars,decoder process
+    class encoder_fusion,camera_bev,decoder_fusion fusion
+    class box_heads,velocity_head output</code></pre>
+<p class="diagram-note"><em>Figure: The active path preserves the BEVFormer camera scaffold, injects LiDAR BEV evidence in the encoder and decoder, and keeps velocity prediction attached to the pre-fusion camera BEV.</em></p>
+
 <h2 id="active-implementation-scope">Active implementation scope<a class="headerlink" href="#active-implementation-scope" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -904,29 +940,40 @@
 </ul>
 <p>The box loss explicitly zeros the yaw and velocity dimensions (<code>bbox_weights[:, 6:10] = 0</code>) so that orientation and motion supervision are isolated from the box regression path.</p>
 <h2 id="data-flow">Data flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>NuScenes sample
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -&gt; CustomNuScenesDataset.prepare_train_data()
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  -&gt; temporal queue + img_metas enrichment
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  -&gt; BEVFormer.forward_train()
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  -&gt; extract_img_feat() for multi-view camera tensors
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  -&gt; extract_pts_bev_feat() for PointPillars LiDAR BEV
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  -&gt; BEVFormerHead.forward()
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  -&gt; PerceptionTransformer.get_bev_features()
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  -&gt; BEVFormerEncoder / MM_BEVFormerLayer
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      -&gt; TemporalSelfAttention with prev_bev
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      -&gt; SpatialCrossAttention on image features
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      -&gt; LiDAR deformable attention on projected BEV tokens
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  -&gt; PerceptionTransformer.forward()
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      -&gt; clone camera-path BEV
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      -&gt; decoder-side concat + linear LiDAR fusion
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      -&gt; DetectionTransformerDecoder
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  -&gt; BEVFormerHead
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      -&gt; class scores
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>      -&gt; box regression
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      -&gt; yaw-bin / yaw-residual outputs
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>      -&gt; velocity cross-attention on bev_embed_cam
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  -&gt; losses or decoded boxes
-</code></pre></div>
+<pre class="mermaid"><code>flowchart TD
+    accTitle: BEVFormerFusion Data Flow
+    accDescr: A nuScenes sample is assembled into a temporal queue, processed by camera and LiDAR branches, fused inside the transformer stack, and converted into losses or decoded boxes.
+
+    sample["NuScenes sample"]
+    dataset["CustomNuScenesDataset&lt;br/&gt;temporal queue + img_metas"]
+    detector["BEVFormer.forward_train() / forward_test()"]
+    image_branch["extract_img_feat()&lt;br/&gt;multi-view camera tensors"]
+    lidar_branch["extract_pts_bev_feat()&lt;br/&gt;PointPillars LiDAR BEV"]
+    head["BEVFormerHead.forward()"]
+    transformer["PerceptionTransformer + BEVFormerEncoder"]
+    fusion["Temporal self-attention&lt;br/&gt;camera attention&lt;br/&gt;LiDAR attention&lt;br/&gt;decoder fusion"]
+    outputs["Class, box, yaw, and velocity outputs"]
+    train_out["Training losses + BEV cache update"]
+    test_out["Decoded nuScenes boxes"]
+
+    sample --&gt; dataset --&gt; detector
+    detector --&gt; image_branch
+    detector --&gt; lidar_branch
+    image_branch --&gt; head
+    lidar_branch --&gt; head
+    head --&gt; transformer --&gt; fusion --&gt; outputs
+    outputs --&gt; train_out
+    outputs --&gt; test_out
+
+    classDef input fill:#e7f1ff,stroke:#3d6aa2,color:#15263b
+    classDef process fill:#f8f1e4,stroke:#bb6b2c,color:#15263b
+    classDef output fill:#e5f4ef,stroke:#136f63,color:#15263b
+
+    class sample input
+    class dataset,detector,image_branch,lidar_branch,head,transformer,fusion process
+    class outputs,train_out,test_out output</code></pre>
+<p class="diagram-note"><em>Figure: The same multi-modal path is reused for training and inference; the branch-specific difference is whether the final predictions are consumed by the loss stack or the bbox decoder.</em></p>
+
 <h2 id="training-and-inference-flow">Training and inference flow<a class="headerlink" href="#training-and-inference-flow" title="Permanent link">&para;</a></h2>
 <h3 id="training">Training<a class="headerlink" href="#training" title="Permanent link">&para;</a></h3>
 <p><code>BEVFormer.forward_pts_train()</code> retrieves <code>prev_bev</code> from the scene-keyed cache when available, builds the LiDAR BEV feature map, forwards both modalities through <code>BEVFormerHead</code>, updates the cache with the new <code>bev_embed</code>, and computes losses. <code>obtain_history_bev()</code> runs history frames in eval mode and without gradients, which reduces the memory burden of temporal context reconstruction.</p>
@@ -1001,6 +1048,10 @@
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../assets/javascripts/mermaid-init.js"></script>
       
         <script src="../assets/javascripts/metrics.js"></script>
       

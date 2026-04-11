@@ -13,6 +13,16 @@ The active fusion path is trained with `projects/configs/bevformer/bevformer_pro
 | Local BEVFormer baseline | `projects/configs/bevformer/bevformer_base.py` | 100000 | 0.2011 | 0.2192 |
 | BEVFormerFusion | `projects/configs/bevformer/bevformer_project.py` | 100000 | 0.2507 | 0.2546 |
 
+```mermaid
+xychart-beta
+    title "Best-checkpoint accuracy comparison"
+    x-axis ["Baseline mAP", "Fusion mAP", "Baseline NDS", "Fusion NDS"]
+    y-axis "Score" 0.0 --> 0.30
+    bar [0.2011, 0.2507, 0.2192, 0.2546]
+```
+
+<p class="diagram-note"><em>Figure: The best recorded checkpoint improves both published accuracy metrics, with the fused run exceeding the local baseline in mAP and NDS.</em></p>
+
 ## Checkpoint progression
 
 ### Local baseline curve
@@ -39,6 +49,17 @@ The active fusion path is trained with `projects/configs/bevformer/bevformer_pro
 | 60000 | 0.1785 | 0.1897 | 0.9835 | 1.0142 | 1.1361 |
 | 80000 | 0.2066 | 0.2216 | 0.9197 | 0.8671 | 1.0771 |
 | 100000 | 0.2507 | 0.2546 | 0.8697 | 0.8241 | 1.1375 |
+
+```mermaid
+xychart-beta
+    title "Validation NDS at shared checkpoints"
+    x-axis [20000, 40000, 60000, 80000, 100000]
+    y-axis "NDS" 0.12 --> 0.26
+    line [0.1582, 0.1815, 0.1912, 0.2152, 0.2192]
+    line [0.1308, 0.1592, 0.1897, 0.2216, 0.2546]
+```
+
+<p class="diagram-note"><em>Figure: Line order is local baseline first, then BEVFormerFusion. The fused run starts lower at early checkpoints and finishes above the baseline at the shared 100k endpoint.</em></p>
 
 ## Analysis
 

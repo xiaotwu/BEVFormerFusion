@@ -318,6 +318,32 @@
   display: block;
 }
 
+.md-typeset .mermaid {
+  margin: 1.25rem 0 1.6rem;
+  padding: 1rem;
+  border: 1px solid var(--rf-line);
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--rf-shadow);
+  overflow-x: auto;
+  text-align: center;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .mermaid {
+  background: rgba(18, 27, 41, 0.92);
+}
+
+.md-typeset .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.md-typeset .diagram-note {
+  margin: -0.6rem 0 1.2rem;
+  color: var(--rf-muted);
+  font-size: 0.95rem;
+}
+
 .md-typeset .legend-row {
   display: flex;
   flex-wrap: wrap;

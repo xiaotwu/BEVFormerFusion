@@ -706,6 +706,13 @@
 </tr>
 </tbody>
 </table>
+<pre class="mermaid"><code>xychart-beta
+    title "Best-checkpoint accuracy comparison"
+    x-axis ["Baseline mAP", "Fusion mAP", "Baseline NDS", "Fusion NDS"]
+    y-axis "Score" 0.0 --&gt; 0.30
+    bar [0.2011, 0.2507, 0.2192, 0.2546]</code></pre>
+<p class="diagram-note"><em>Figure: The best recorded checkpoint improves both published accuracy metrics, with the fused run exceeding the local baseline in mAP and NDS.</em></p>
+
 <h2 id="checkpoint-progression">Checkpoint progression<a class="headerlink" href="#checkpoint-progression" title="Permanent link">&para;</a></h2>
 <h3 id="local-baseline-curve">Local baseline curve<a class="headerlink" href="#local-baseline-curve" title="Permanent link">&para;</a></h3>
 <table>
@@ -857,6 +864,14 @@
 </tr>
 </tbody>
 </table>
+<pre class="mermaid"><code>xychart-beta
+    title "Validation NDS at shared checkpoints"
+    x-axis [20000, 40000, 60000, 80000, 100000]
+    y-axis "NDS" 0.12 --&gt; 0.26
+    line [0.1582, 0.1815, 0.1912, 0.2152, 0.2192]
+    line [0.1308, 0.1592, 0.1897, 0.2216, 0.2546]</code></pre>
+<p class="diagram-note"><em>Figure: Line order is local baseline first, then BEVFormerFusion. The fused run starts lower at early checkpoints and finishes above the baseline at the shared 100k endpoint.</em></p>
+
 <h2 id="analysis">Analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
 <p>The best fused checkpoint at 100k iterations improves the local baseline by <code>+0.0496</code> mAP and <code>+0.0354</code> NDS. The same checkpoint also lowers mATE from <code>0.9490</code> to <code>0.8697</code> and lowers mAAE from <code>0.3333</code> to <code>0.2963</code>.</p>
 <p>The fused curve starts below the baseline at early checkpoints and overtakes the baseline by 80k iterations. That pattern is visible directly in the normalized curves and is therefore reported here without attributing a causal explanation beyond the architectural changes documented elsewhere.</p>
@@ -974,6 +989,10 @@
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../assets/javascripts/mermaid-init.js"></script>
       
         <script src="../assets/javascripts/metrics.js"></script>
       

@@ -41,6 +41,8 @@ extra_css:
   - assets/stylesheets/research.css
 
 extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - assets/javascripts/mermaid-init.js
   - assets/javascripts/metrics.js
 
 markdown_extensions:
