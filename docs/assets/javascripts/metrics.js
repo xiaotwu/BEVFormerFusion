@@ -8,13 +8,6 @@
     return Number(value).toFixed(digits);
   }
 
-  function formatRuntime(value, suffix = "") {
-    if (value === null || value === undefined || Number.isNaN(Number(value))) {
-      return "Pending";
-    }
-    return `${Number(value).toFixed(2)}${suffix}`;
-  }
-
   function setText(id, text) {
     const node = document.getElementById(id);
     if (node) {
@@ -40,24 +33,6 @@
         <td>${model.best_iter.toLocaleString()}</td>
         <td>${formatMetric(model.mAP)}</td>
         <td>${formatMetric(model.NDS)}</td>
-        <td>${formatRuntime(model.fps, " img/s")}</td>
-        <td>${formatRuntime(model.memory_gb, " GB")}</td>
-      </tr>
-    `).join("");
-  }
-
-  function build12GbTable(profileRows) {
-    const tbody = document.getElementById("profile-results-body");
-    if (!tbody) {
-      return;
-    }
-    tbody.innerHTML = profileRows.map((row) => `
-      <tr>
-        <td>${row.setting}</td>
-        <td>${formatRuntime(row.memory_gb, " GB")}</td>
-        <td>${formatRuntime(row.fps, " img/s")}</td>
-        <td>${row.mAP === null ? "Pending" : `${formatMetric(row.mAP)} / ${formatMetric(row.NDS)}`}</td>
-        <td>${row.notes}</td>
       </tr>
     `).join("");
   }
@@ -96,10 +71,6 @@
     setText(
       "fusion-delta-note",
       `At ${fusion.best_iter.toLocaleString()} iterations, the fused configuration improves mAP by ${formatMetric(findings.mAP_gain_abs)} and NDS by ${formatMetric(findings.NDS_gain_abs)} over the local BEVFormer baseline.`
-    );
-    setText(
-      "hero-runtime-note",
-      "Runtime metrics remain pending until a dedicated 12GB GPU profiling run is recorded."
     );
     setText(
       "best-checkpoint-note",
@@ -220,7 +191,7 @@
 
   async function renderMetrics() {
     const currentPath = window.location.pathname + window.location.search + window.location.hash;
-    if (currentPath === lastRenderedPath && !document.getElementById("hero-runtime-note")) {
+    if (currentPath === lastRenderedPath) {
       return;
     }
     lastRenderedPath = currentPath;
@@ -234,14 +205,11 @@
       const metrics = await response.json();
       buildHeroMetrics(metrics.published_models, metrics.derived_findings.fusion_vs_baseline);
       buildMainResultsTable(metrics.published_models);
-      build12GbTable(metrics.twelve_gb_profile.rows);
       buildInsightCards(metrics.derived_findings.fusion_vs_baseline);
       buildCurve(metrics.curves);
     } catch (error) {
       console.error(error);
-      setText("hero-runtime-note", "Metrics could not be loaded. Check assets/data/metrics.json.");
-      setHtml("main-results-body", '<tr><td colspan="6">Metrics could not be loaded.</td></tr>');
-      setHtml("profile-results-body", '<tr><td colspan="5">Profile status could not be loaded.</td></tr>');
+      setHtml("main-results-body", '<tr><td colspan="4">Metrics could not be loaded.</td></tr>');
     }
   }
 

@@ -1,6 +1,6 @@
 # Experiments
 
-This page publishes only repository-tracked evidence. Accuracy numbers come from the result workbooks that were normalized into `docs/assets/data/metrics.json`. Runtime numbers remain pending because the repository does not contain a benchmark or memory-profiling artifact for the documented checkpoints.
+This page publishes only repository-tracked checkpoint evidence normalized into `docs/assets/data/metrics.json`. The tables below therefore report the recorded validation metrics for the baseline and fusion runs represented by that artifact.
 
 ## Experiment summary
 
@@ -8,16 +8,10 @@ The active fusion path is trained with `projects/configs/bevformer/bevformer_pro
 
 ## Main results
 
-| Model | Config | Best iter | mAP | NDS | FPS | Memory |
-| --- | --- | ---: | ---: | ---: | --- | --- |
-| Local BEVFormer baseline | `projects/configs/bevformer/bevformer_base.py` | 100000 | 0.2011 | 0.2192 | Pending | Pending |
-| BEVFormerFusion | `projects/configs/bevformer/bevformer_project.py` | 100000 | 0.2507 | 0.2546 | Pending | Pending |
-
-## 12GB GPU table
-
-| Setting | Memory | FPS | Accuracy | Notes |
-| --- | --- | --- | --- | --- |
-| BEVFormerFusion on a 12GB GPU | Pending | Pending | Pending | The repository does not contain a fresh 12GB profiling artifact. This table is intentionally left open until measured runtime evidence is added. |
+| Model | Config | Best iter | mAP | NDS |
+| --- | --- | ---: | ---: | ---: |
+| Local BEVFormer baseline | `projects/configs/bevformer/bevformer_base.py` | 100000 | 0.2011 | 0.2192 |
+| BEVFormerFusion | `projects/configs/bevformer/bevformer_project.py` | 100000 | 0.2507 | 0.2546 |
 
 ## Checkpoint progression
 
@@ -48,7 +42,7 @@ The active fusion path is trained with `projects/configs/bevformer/bevformer_pro
 
 ## Analysis
 
-The best fused checkpoint at 100k iterations improves the local baseline by `+0.0496` mAP and `+0.0354` NDS. The same checkpoint also lowers mATE from `0.9490` to `0.8697` and lowers mAAE from `0.3333` to `0.2963`. The published workbooks do not show a corresponding runtime trade-off because they record checkpoint-level detection metrics only, not inference throughput or memory usage.
+The best fused checkpoint at 100k iterations improves the local baseline by `+0.0496` mAP and `+0.0354` NDS. The same checkpoint also lowers mATE from `0.9490` to `0.8697` and lowers mAAE from `0.3333` to `0.2963`.
 
 The fused curve starts below the baseline at early checkpoints and overtakes the baseline by 80k iterations. That pattern is visible directly in the normalized curves and is therefore reported here without attributing a causal explanation beyond the architectural changes documented elsewhere.
 
@@ -67,15 +61,3 @@ The fused curve starts below the baseline at early checkpoints and overtakes the
 | Weight decay | `0.01` |
 | Backbone LR multiplier | `0.1` |
 | Fusion mode | `encoder_decoder` |
-
-## Provenance retained after workbook deletion
-
-| Artifact | SHA256 | Role |
-| --- | --- | --- |
-| `results/Baseline_Results_Summary.xlsx` | `949da5528e79407b18d7a22668300432be5203dc33de8f7f8cb46ee8b1e3e2cb` | Baseline curve and best-checkpoint metrics |
-| `results/Enc_Dec_Results_Summary.xlsx` | `f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5` | Canonical fusion curve and best-checkpoint metrics |
-| `results/EncoderFusion_Results_SHS.xlsx` | `f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5` | Duplicate of the canonical fusion workbook |
-
-## Paper-style experiment summary
-
-The repository-tracked experiments show that the documented fusion path surpasses the local BEVFormer baseline on the available checkpoint summaries. At the shared 100k-iteration endpoint, BEVFormerFusion reaches `0.2507` mAP and `0.2546` NDS, compared with `0.2011` mAP and `0.2192` NDS for the local baseline curve. These tables should be read as accuracy evidence only: the repository does not currently include benchmark traces for FPS, peak memory, or a dedicated 12GB GPU evaluation.

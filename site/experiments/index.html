@@ -423,17 +423,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#12gb-gpu-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12GB GPU table
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#checkpoint-progression" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -488,28 +477,6 @@
     <span class="md-ellipsis">
       
         Setup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#provenance-retained-after-workbook-deletion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provenance retained after workbook deletion
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#paper-style-experiment-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Paper-style experiment summary
       
     </span>
   </a>
@@ -627,17 +594,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#12gb-gpu-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12GB GPU table
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#checkpoint-progression" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -698,28 +654,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#provenance-retained-after-workbook-deletion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Provenance retained after workbook deletion
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#paper-style-experiment-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Paper-style experiment summary
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -741,7 +675,7 @@
 
 
 <h1 id="experiments">Experiments<a class="headerlink" href="#experiments" title="Permanent link">&para;</a></h1>
-<p>This page publishes only repository-tracked evidence. Accuracy numbers come from the result workbooks that were normalized into <code>docs/assets/data/metrics.json</code>. Runtime numbers remain pending because the repository does not contain a benchmark or memory-profiling artifact for the documented checkpoints.</p>
+<p>This page publishes only repository-tracked checkpoint evidence normalized into <code>docs/assets/data/metrics.json</code>. The tables below therefore report the recorded validation metrics for the baseline and fusion runs represented by that artifact.</p>
 <h2 id="experiment-summary">Experiment summary<a class="headerlink" href="#experiment-summary" title="Permanent link">&para;</a></h2>
 <p>The active fusion path is trained with <code>projects/configs/bevformer/bevformer_project.py</code>, which defines a <code>100 x 100</code> BEV grid, <code>450</code> object queries, a four-layer encoder, a six-layer decoder, AdamW with <code>lr = 2e-4</code>, and <code>fusion_mode = encoder_decoder</code>. The local baseline curve was normalized from <code>results/Baseline_Results_Summary.xlsx</code>, while the fused-model curve was normalized from <code>results/Enc_Dec_Results_Summary.xlsx</code>. <code>results/EncoderFusion_Results_SHS.xlsx</code> was byte-identical to the fused workbook and is therefore treated as a duplicate artifact rather than a second experiment.</p>
 <h2 id="main-results">Main results<a class="headerlink" href="#main-results" title="Permanent link">&para;</a></h2>
@@ -753,8 +687,6 @@
 <th style="text-align: right;">Best iter</th>
 <th style="text-align: right;">mAP</th>
 <th style="text-align: right;">NDS</th>
-<th>FPS</th>
-<th>Memory</th>
 </tr>
 </thead>
 <tbody>
@@ -764,8 +696,6 @@
 <td style="text-align: right;">100000</td>
 <td style="text-align: right;">0.2011</td>
 <td style="text-align: right;">0.2192</td>
-<td>Pending</td>
-<td>Pending</td>
 </tr>
 <tr>
 <td>BEVFormerFusion</td>
@@ -773,29 +703,6 @@
 <td style="text-align: right;">100000</td>
 <td style="text-align: right;">0.2507</td>
 <td style="text-align: right;">0.2546</td>
-<td>Pending</td>
-<td>Pending</td>
-</tr>
-</tbody>
-</table>
-<h2 id="12gb-gpu-table">12GB GPU table<a class="headerlink" href="#12gb-gpu-table" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Memory</th>
-<th>FPS</th>
-<th>Accuracy</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>BEVFormerFusion on a 12GB GPU</td>
-<td>Pending</td>
-<td>Pending</td>
-<td>Pending</td>
-<td>The repository does not contain a fresh 12GB profiling artifact. This table is intentionally left open until measured runtime evidence is added.</td>
 </tr>
 </tbody>
 </table>
@@ -951,7 +858,7 @@
 </tbody>
 </table>
 <h2 id="analysis">Analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
-<p>The best fused checkpoint at 100k iterations improves the local baseline by <code>+0.0496</code> mAP and <code>+0.0354</code> NDS. The same checkpoint also lowers mATE from <code>0.9490</code> to <code>0.8697</code> and lowers mAAE from <code>0.3333</code> to <code>0.2963</code>. The published workbooks do not show a corresponding runtime trade-off because they record checkpoint-level detection metrics only, not inference throughput or memory usage.</p>
+<p>The best fused checkpoint at 100k iterations improves the local baseline by <code>+0.0496</code> mAP and <code>+0.0354</code> NDS. The same checkpoint also lowers mATE from <code>0.9490</code> to <code>0.8697</code> and lowers mAAE from <code>0.3333</code> to <code>0.2963</code>.</p>
 <p>The fused curve starts below the baseline at early checkpoints and overtakes the baseline by 80k iterations. That pattern is visible directly in the normalized curves and is therefore reported here without attributing a causal explanation beyond the architectural changes documented elsewhere.</p>
 <h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
 <table>
@@ -1008,35 +915,6 @@
 </tr>
 </tbody>
 </table>
-<h2 id="provenance-retained-after-workbook-deletion">Provenance retained after workbook deletion<a class="headerlink" href="#provenance-retained-after-workbook-deletion" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Artifact</th>
-<th>SHA256</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>results/Baseline_Results_Summary.xlsx</code></td>
-<td><code>949da5528e79407b18d7a22668300432be5203dc33de8f7f8cb46ee8b1e3e2cb</code></td>
-<td>Baseline curve and best-checkpoint metrics</td>
-</tr>
-<tr>
-<td><code>results/Enc_Dec_Results_Summary.xlsx</code></td>
-<td><code>f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5</code></td>
-<td>Canonical fusion curve and best-checkpoint metrics</td>
-</tr>
-<tr>
-<td><code>results/EncoderFusion_Results_SHS.xlsx</code></td>
-<td><code>f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5</code></td>
-<td>Duplicate of the canonical fusion workbook</td>
-</tr>
-</tbody>
-</table>
-<h2 id="paper-style-experiment-summary">Paper-style experiment summary<a class="headerlink" href="#paper-style-experiment-summary" title="Permanent link">&para;</a></h2>
-<p>The repository-tracked experiments show that the documented fusion path surpasses the local BEVFormer baseline on the available checkpoint summaries. At the shared 100k-iteration endpoint, BEVFormerFusion reaches <code>0.2507</code> mAP and <code>0.2546</code> NDS, compared with <code>0.2011</code> mAP and <code>0.2192</code> NDS for the local baseline curve. These tables should be read as accuracy evidence only: the repository does not currently include benchmark traces for FPS, peak memory, or a dedicated 12GB GPU evaluation.</p>
 
 
 

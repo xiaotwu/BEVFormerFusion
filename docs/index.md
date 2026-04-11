@@ -1,30 +1,12 @@
 # BEVFormerFusion
 
-<div class="landing-hero">
-  <span class="hero-kicker">Research landing page</span>
-  <h1>Camera-LiDAR BEV fusion built on the BEVFormer detector path</h1>
-  <p class="hero-subtitle">
-    BEVFormerFusion extends the active BEVFormer implementation in this repository with PointPillars-based LiDAR injection at the encoder and decoder stages, plus a dedicated velocity head that reads from the pre-fusion BEV state.
-  </p>
-  <ul class="hero-bullets">
-    <li>Encoder-side LiDAR deformable attention added to every BEV encoder layer.</li>
-    <li>Decoder-side concatenate-and-project fusion initialized as a camera-preserving shortcut.</li>
-    <li>Dedicated velocity cross-attention head trained independently from box regression.</li>
-    <li>Accuracy tables derived only from repo-tracked result workbooks and code-validated comparisons.</li>
-  </ul>
-  <div class="hero-actions">
-    <a class="primary" href="architecture/">Read the architecture</a>
-    <a href="bevformer-comparison/">Compare against BEVFormer</a>
-    <a href="experiments/">Inspect experiments</a>
-    <a href="https://github.com/xiaotwu/BEVFormerFusion">GitHub repository</a>
-  </div>
-</div>
+BEVFormerFusion is a BEVFormer-derived multi-modal 3D detector for nuScenes. The active implementation keeps the upstream camera-to-BEV scaffold and adds PointPillars LiDAR BEV features at the encoder and decoder stages, plus a dedicated velocity head that reads from the pre-fusion camera BEV state.
+
+The published comparisons on this site are limited to the repository-tracked checkpoint summaries normalized into `docs/assets/data/metrics.json`. At the shared `100000`-iteration checkpoint, the fused configuration reaches `0.2507` mAP and `0.2546` NDS, compared with `0.2011` mAP and `0.2192` NDS for the local BEVFormer baseline.
+
+Documentation: [Architecture](architecture.md) | [BEVFormer comparison](bevformer-comparison.md) | [Experiments](experiments.md) | [Usage](usage.md) | [API reference](api-reference.md) | [GitHub repository](https://github.com/xiaotwu/BEVFormerFusion)
 
 <div id="hero-metrics" class="metric-strip"></div>
-
-<div class="pending-note">
-  <strong>Runtime evidence status.</strong> <span id="hero-runtime-note">Loading metrics...</span>
-</div>
 
 <div class="section-shell">
   <h2>Overview and motivation</h2>
@@ -74,18 +56,12 @@ BEVFormerFusion adds three code-backed changes to that baseline:
         <th>Best iter</th>
         <th>mAP</th>
         <th>NDS</th>
-        <th>FPS</th>
-        <th>Memory</th>
       </tr>
     </thead>
     <tbody id="main-results-body">
-      <tr><td colspan="6">Loading metrics...</td></tr>
+      <tr><td colspan="4">Loading metrics...</td></tr>
     </tbody>
   </table>
-</div>
-
-<div class="provenance-note">
-  <strong>Published metric provenance.</strong> The tables on this page are driven by `docs/assets/data/metrics.json`, which was normalized from `results/Baseline_Results_Summary.xlsx` and one canonical fused-run workbook. Runtime metrics remain pending because the repository does not include a profiling artifact for FPS or memory.
 </div>
 
 ## Results
@@ -99,35 +75,14 @@ BEVFormerFusion adds three code-backed changes to that baseline:
   <div id="nds-curve"></div>
 </div>
 
-### 12GB GPU table
-
-<div class="research-table-wrap">
-  <table class="research-table">
-    <thead>
-      <tr>
-        <th>Setting</th>
-        <th>Memory</th>
-        <th>FPS</th>
-        <th>Accuracy</th>
-        <th>Notes</th>
-      </tr>
-    </thead>
-    <tbody id="profile-results-body">
-      <tr><td colspan="5">Loading profile status...</td></tr>
-    </tbody>
-  </table>
-</div>
-
-The repository does not currently contain a 12GB runtime log, benchmark export, or checkpoint-specific memory trace. The table is therefore wired into the canonical metrics artifact but intentionally left pending until a fresh profiling run is recorded.
-
 ## Experiments
 
-The local experiment evidence currently tracks checkpoint summaries rather than a full benchmark harness. The public experiment pages therefore focus on:
+The public experiment pages focus on the normalized checkpoint summaries that are already tracked in the repository:
 
 - validation mAP and NDS across checkpoint milestones,
 - the best local baseline checkpoint at 100k iterations,
 - the best fused checkpoint at 100k iterations,
-- provenance retained after workbook deletion through checksums and normalized JSON.
+- curve-level comparison across the baseline and fusion runs.
 
 The training configuration for the active method is drawn from `projects/configs/bevformer/bevformer_project.py`: AdamW with `lr = 2e-4`, BEV resolution `100 x 100`, object-query count `450`, temporal queue length `4`, and LiDAR fusion mode `encoder_decoder`.
 
@@ -144,7 +99,7 @@ The training configuration for the active method is drawn from `projects/configs
   </div>
   <div class="doc-card">
     <a href="experiments/">Experiments</a>
-    <p>Checkpoint metrics, analysis, and provenance for published tables.</p>
+    <p>Checkpoint metrics and analysis for the published baseline and fusion runs.</p>
   </div>
   <div class="doc-card">
     <a href="usage/">Usage</a>

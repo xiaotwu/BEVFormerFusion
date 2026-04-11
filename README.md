@@ -1,6 +1,6 @@
 # BEVFormerFusion
 
-BEVFormerFusion is a BEVFormer-derived multi-modal 3D detector for nuScenes. The published implementation keeps the upstream camera-to-BEV pipeline and adds a PointPillars LiDAR branch, encoder-side LiDAR cross-attention, decoder-side BEV fusion, and a dedicated velocity head. All metrics reported below are traced to the checked-in experiment workbooks or to repository code; no estimated runtime values are published.
+BEVFormerFusion is a BEVFormer-derived multi-modal 3D detector for nuScenes. The published implementation keeps the upstream camera-to-BEV pipeline and adds a PointPillars LiDAR branch, encoder-side LiDAR cross-attention, decoder-side BEV fusion, and a dedicated velocity head. All metrics reported below are traced to the checked-in experiment workbooks or to repository code.
 
 ## Introduction
 
@@ -102,12 +102,12 @@ The published model predicts the standard nuScenes 10-class set: car, truck, con
 
 The baseline metrics were normalized from `results/Baseline_Results_Summary.xlsx`. The fused-model metrics were normalized from `results/Enc_Dec_Results_Summary.xlsx`; `results/EncoderFusion_Results_SHS.xlsx` was byte-identical and is treated as a duplicate artifact rather than a second run.
 
-| Model | Best Checkpoint | mAP | NDS | FPS | Memory |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| BEVFormer baseline | 100000 | 0.2011 | 0.2192 | Pending | Pending |
-| BEVFormerFusion | 100000 | 0.2507 | 0.2546 | Pending | Pending |
+| Model | Best Checkpoint | mAP | NDS |
+| --- | ---: | ---: | ---: |
+| BEVFormer baseline | 100000 | 0.2011 | 0.2192 |
+| BEVFormerFusion | 100000 | 0.2507 | 0.2546 |
 
-At the best recorded checkpoint, the fused model improves mAP by `+0.0496` and NDS by `+0.0354` over the baseline workbook curve. A fresh 12GB GPU runtime profile is still pending because no validated profiling artifact is currently tracked in this repository.
+At the best recorded checkpoint, the fused model improves mAP by `+0.0496` and NDS by `+0.0354` over the baseline workbook curve.
 
 ## Documentation
 
@@ -116,6 +116,6 @@ The canonical documentation source now lives in `docs/` and is published through
 - Landing page: [docs/index.md](docs/index.md)
 - Architecture summary: [docs/architecture.md](docs/architecture.md)
 - BEVFormer comparison: [docs/bevformer-comparison.md](docs/bevformer-comparison.md)
-- Experiment tables and provenance: [docs/experiments.md](docs/experiments.md)
+- Experiment tables and analysis: [docs/experiments.md](docs/experiments.md)
 - Command reference: [docs/usage.md](docs/usage.md)
 - Module map: [docs/api-reference.md](docs/api-reference.md)

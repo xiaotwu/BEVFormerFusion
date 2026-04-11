@@ -376,23 +376,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Results">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#12gb-gpu-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12GB GPU table
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -645,23 +628,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Results">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#12gb-gpu-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12GB GPU table
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -707,31 +673,10 @@
 
 
 <h1 id="bevformerfusion">BEVFormerFusion<a class="headerlink" href="#bevformerfusion" title="Permanent link">&para;</a></h1>
-<div class="landing-hero">
-  <span class="hero-kicker">Research landing page</span>
-  <h1>Camera-LiDAR BEV fusion built on the BEVFormer detector path</h1>
-  <p class="hero-subtitle">
-    BEVFormerFusion extends the active BEVFormer implementation in this repository with PointPillars-based LiDAR injection at the encoder and decoder stages, plus a dedicated velocity head that reads from the pre-fusion BEV state.
-  </p>
-  <ul class="hero-bullets">
-    <li>Encoder-side LiDAR deformable attention added to every BEV encoder layer.</li>
-    <li>Decoder-side concatenate-and-project fusion initialized as a camera-preserving shortcut.</li>
-    <li>Dedicated velocity cross-attention head trained independently from box regression.</li>
-    <li>Accuracy tables derived only from repo-tracked result workbooks and code-validated comparisons.</li>
-  </ul>
-  <div class="hero-actions">
-    <a class="primary" href="architecture/">Read the architecture</a>
-    <a href="bevformer-comparison/">Compare against BEVFormer</a>
-    <a href="experiments/">Inspect experiments</a>
-    <a href="https://github.com/xiaotwu/BEVFormerFusion">GitHub repository</a>
-  </div>
-</div>
-
+<p>BEVFormerFusion is a BEVFormer-derived multi-modal 3D detector for nuScenes. The active implementation keeps the upstream camera-to-BEV scaffold and adds PointPillars LiDAR BEV features at the encoder and decoder stages, plus a dedicated velocity head that reads from the pre-fusion camera BEV state.</p>
+<p>The published comparisons on this site are limited to the repository-tracked checkpoint summaries normalized into <code>docs/assets/data/metrics.json</code>. At the shared <code>100000</code>-iteration checkpoint, the fused configuration reaches <code>0.2507</code> mAP and <code>0.2546</code> NDS, compared with <code>0.2011</code> mAP and <code>0.2192</code> NDS for the local BEVFormer baseline.</p>
+<p>Documentation: <a href="architecture/">Architecture</a> | <a href="bevformer-comparison/">BEVFormer comparison</a> | <a href="experiments/">Experiments</a> | <a href="usage/">Usage</a> | <a href="api-reference/">API reference</a> | <a href="https://github.com/xiaotwu/BEVFormerFusion">GitHub repository</a></p>
 <div id="hero-metrics" class="metric-strip"></div>
-
-<div class="pending-note">
-  <strong>Runtime evidence status.</strong> <span id="hero-runtime-note">Loading metrics...</span>
-</div>
 
 <div class="section-shell">
   <h2>Overview and motivation</h2>
@@ -828,18 +773,12 @@
         <th>Best iter</th>
         <th>mAP</th>
         <th>NDS</th>
-        <th>FPS</th>
-        <th>Memory</th>
       </tr>
     </thead>
     <tbody id="main-results-body">
-      <tr><td colspan="6">Loading metrics...</td></tr>
+      <tr><td colspan="4">Loading metrics...</td></tr>
     </tbody>
   </table>
-</div>
-
-<div class="provenance-note">
-  <strong>Published metric provenance.</strong> The tables on this page are driven by `docs/assets/data/metrics.json`, which was normalized from `results/Baseline_Results_Summary.xlsx` and one canonical fused-run workbook. Runtime metrics remain pending because the repository does not include a profiling artifact for FPS or memory.
 </div>
 
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
@@ -852,32 +791,13 @@
   <div id="nds-curve"></div>
 </div>
 
-<h3 id="12gb-gpu-table">12GB GPU table<a class="headerlink" href="#12gb-gpu-table" title="Permanent link">&para;</a></h3>
-<div class="research-table-wrap">
-  <table class="research-table">
-    <thead>
-      <tr>
-        <th>Setting</th>
-        <th>Memory</th>
-        <th>FPS</th>
-        <th>Accuracy</th>
-        <th>Notes</th>
-      </tr>
-    </thead>
-    <tbody id="profile-results-body">
-      <tr><td colspan="5">Loading profile status...</td></tr>
-    </tbody>
-  </table>
-</div>
-
-<p>The repository does not currently contain a 12GB runtime log, benchmark export, or checkpoint-specific memory trace. The table is therefore wired into the canonical metrics artifact but intentionally left pending until a fresh profiling run is recorded.</p>
 <h2 id="experiments">Experiments<a class="headerlink" href="#experiments" title="Permanent link">&para;</a></h2>
-<p>The local experiment evidence currently tracks checkpoint summaries rather than a full benchmark harness. The public experiment pages therefore focus on:</p>
+<p>The public experiment pages focus on the normalized checkpoint summaries that are already tracked in the repository:</p>
 <ul>
 <li>validation mAP and NDS across checkpoint milestones,</li>
 <li>the best local baseline checkpoint at 100k iterations,</li>
 <li>the best fused checkpoint at 100k iterations,</li>
-<li>provenance retained after workbook deletion through checksums and normalized JSON.</li>
+<li>curve-level comparison across the baseline and fusion runs.</li>
 </ul>
 <p>The training configuration for the active method is drawn from <code>projects/configs/bevformer/bevformer_project.py</code>: AdamW with <code>lr = 2e-4</code>, BEV resolution <code>100 x 100</code>, object-query count <code>450</code>, temporal queue length <code>4</code>, and LiDAR fusion mode <code>encoder_decoder</code>.</p>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
@@ -892,7 +812,7 @@
   </div>
   <div class="doc-card">
     <a href="experiments/">Experiments</a>
-    <p>Checkpoint metrics, analysis, and provenance for published tables.</p>
+    <p>Checkpoint metrics and analysis for the published baseline and fusion runs.</p>
   </div>
   <div class="doc-card">
     <a href="usage/">Usage</a>
