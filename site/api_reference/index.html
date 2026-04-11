@@ -6,26 +6,24 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer">
+        <meta name="description" content="Research-grade documentation for BEVFormerFusion and its BEVFormer-relative modifications">
       
       
       
       
-        <link rel="prev" href="../08-loss-and-training/">
+        <link rel="prev" href="../usage/">
       
-      
-        <link rel="next" href="../appendix-tensor-shapes/">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Inference - BEVFormerFusion Docs</title>
+        <title>API Reference - BEVFormerFusion Docs</title>
       
     
     
@@ -51,6 +49,8 @@
       
     
     
+      <link rel="stylesheet" href="../assets/stylesheets/research.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -67,7 +67,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="amber">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#chapter-9-inference-decoding" class="md-skip">
+        <a href="#api-reference" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Inference
+              API Reference
             
           </span>
         </div>
@@ -125,7 +125,7 @@
     
     
     
-    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
     
       <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
@@ -135,7 +135,7 @@
     
     
     
-    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
     
       <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
@@ -191,6 +191,18 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/xiaotwu/BEVFormerFusion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xiaotwu/BEVFormerFusion
+  </div>
+</a>
+      </div>
+    
   </nav>
   
 </header>
@@ -224,6 +236,18 @@
     </a>
     BEVFormerFusion Docs
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/xiaotwu/BEVFormerFusion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xiaotwu/BEVFormerFusion
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -261,14 +285,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../00-overview/" class="md-nav__link">
+      <a href="../architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Architecture Overview
+    Architecture
   
 
     
@@ -288,14 +312,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../01-data-pipeline/" class="md-nav__link">
+      <a href="../bevformer_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Data Pipeline
+    BEVFormer Comparison
   
 
     
@@ -315,14 +339,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../02-camera-branch/" class="md-nav__link">
+      <a href="../experiments/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Camera Branch
+    Experiments
   
 
     
@@ -342,149 +366,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../03-lidar-branch/" class="md-nav__link">
+      <a href="../usage/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    LiDAR Branch
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../04-encoder-fusion/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Encoder Fusion
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../05-decoder-fusion/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Decoder Fusion
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../06-transformer-decoder/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Transformer Decoder
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../07-detection-heads/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Detection Heads
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../08-loss-and-training/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Loss & Training
+    Usage
   
 
     
@@ -520,7 +409,7 @@
   <span class="md-ellipsis">
     
   
-    Inference
+    API Reference
   
 
     
@@ -538,7 +427,7 @@
   <span class="md-ellipsis">
     
   
-    Inference
+    API Reference
   
 
     
@@ -564,10 +453,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#code-to-documentation-mapping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Code-to-documentation mapping
       
     </span>
   </a>
@@ -575,10 +464,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#decoding-pipeline" class="md-nav__link">
+  <a href="#public-command-surface" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decoding Pipeline
+        Public command surface
       
     </span>
   </a>
@@ -586,10 +475,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yaw-decoding-detail" class="md-nav__link">
+  <a href="#documentation-roles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Yaw Decoding Detail
+        Documentation roles
       
     </span>
   </a>
@@ -597,10 +486,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#velocity-override" class="md-nav__link">
+  <a href="#legacy-and-excluded-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Velocity Override
+        Legacy and excluded files
       
     </span>
   </a>
@@ -608,43 +497,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#test-time-temporal-processing" class="md-nav__link">
+  <a href="#interface-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test-Time Temporal Processing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inference-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inference Configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-nms-free" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why NMS-Free?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Files
+        Interface notes
       
     </span>
   </a>
@@ -654,121 +510,6 @@
     </ul>
   
 </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
-        
-          
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Appendices
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Appendices
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../appendix-tensor-shapes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tensor Shapes
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../appendix-file-map/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    File Map
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
       
     </li>
   
@@ -801,10 +542,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#code-to-documentation-mapping" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Code-to-documentation mapping
       
     </span>
   </a>
@@ -812,10 +553,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#decoding-pipeline" class="md-nav__link">
+  <a href="#public-command-surface" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decoding Pipeline
+        Public command surface
       
     </span>
   </a>
@@ -823,10 +564,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yaw-decoding-detail" class="md-nav__link">
+  <a href="#documentation-roles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Yaw Decoding Detail
+        Documentation roles
       
     </span>
   </a>
@@ -834,10 +575,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#velocity-override" class="md-nav__link">
+  <a href="#legacy-and-excluded-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Velocity Override
+        Legacy and excluded files
       
     </span>
   </a>
@@ -845,43 +586,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#test-time-temporal-processing" class="md-nav__link">
+  <a href="#interface-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Test-Time Temporal Processing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inference-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inference Configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-nms-free" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why NMS-Free?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Files
+        Interface notes
       
     </span>
   </a>
@@ -904,155 +612,178 @@
                   
 
 
+  
+  
 
-<h1 id="chapter-9-inference-decoding">Chapter 9: Inference &amp; Decoding<a class="headerlink" href="#chapter-9-inference-decoding" title="Permanent link">&para;</a></h1>
-<p><a href="../00-overview/">00 Overview</a> | <a href="../01-data-pipeline/">01 Data Pipeline</a> | <a href="../02-camera-branch/">02 Camera Branch</a> | <a href="../03-lidar-branch/">03 LiDAR Branch</a> | <a href="../04-encoder-fusion/">04 Encoder Fusion</a> | <a href="../05-decoder-fusion/">05 Decoder Fusion</a> | <a href="../06-transformer-decoder/">06 Decoder</a> | <a href="../07-detection-heads/">07 Detection Heads</a> | <a href="../08-loss-and-training/">08 Loss &amp; Training</a> | <strong>09 Inference</strong> | <a href="../appendix-tensor-shapes/">Appendix A: Tensors</a> | <a href="../appendix-file-map/">Appendix B: Files</a></p>
-<hr />
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Inference uses NMS-free decoding: the top-K scoring queries are selected, their yaw and velocity slots are overwritten by the dedicated heads, bounding boxes are denormalized, and spatial filtering is applied. No Non-Maximum Suppression is needed because the DETR-style Hungarian matching already ensures one-to-one query-to-object assignment during training.</p>
-<hr />
-<h2 id="decoding-pipeline">Decoding Pipeline<a class="headerlink" href="#decoding-pipeline" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>graph TD
-    subgraph "Score Selection"
-        CLS["Class Scores&lt;br/&gt;(450 queries x 10 classes)"]
-        CLS --&gt; SIG["Sigmoid Activation"]
-        SIG --&gt; FLAT["Flatten to 4500 scores"]
-        FLAT --&gt; TOPK["Top-K Selection&lt;br/&gt;(K = 300)"]
-        TOPK --&gt; IDX["Extract:&lt;br/&gt;label = index % 10&lt;br/&gt;query_id = index // 10"]
-    end
 
-    subgraph "Head Overrides"
-        IDX --&gt; GATHER["Gather matched&lt;br/&gt;bbox, yaw, velocity predictions"]
-        GATHER --&gt; YAW_OVR["Yaw Override&lt;br/&gt;Bin argmax + residual atan2&lt;br/&gt;→ overwrite sin/cos slots"]
-        YAW_OVR --&gt; VEL_OVR["Velocity Override&lt;br/&gt;vel_preds → overwrite vx/vy slots"]
-    end
-
-    subgraph "Denormalization"
-        VEL_OVR --&gt; DENORM["Denormalize BBox:&lt;br/&gt;exp() for w, l, h&lt;br/&gt;atan2 for yaw&lt;br/&gt;cx, cy, cz, vx, vy direct"]
-    end
-
-    subgraph "Post-Processing"
-        DENORM --&gt; RANGE["Spatial Range Filter&lt;br/&gt;Keep boxes within&lt;br/&gt;[-61.2, -61.2, -10] to [61.2, 61.2, 10]"]
-        RANGE --&gt; SCORE["Score Threshold&lt;br/&gt;(default 0.25)"]
-        SCORE --&gt; SIZE["Optional Size Clamp&lt;br/&gt;[0.2, 8.0]"]
-        SIZE --&gt; OUT["Final Detections&lt;br/&gt;(bboxes, scores, labels)"]
-    end
-
-    style TOPK fill:#e8f4fd,stroke:#4a90d9
-    style YAW_OVR fill:#fff3e0,stroke:#f5a623
-    style VEL_OVR fill:#d4edda,stroke:#28a745
-    style OUT fill:#d4edda,stroke:#28a745</code></pre>
-<hr />
-<h2 id="yaw-decoding-detail">Yaw Decoding Detail<a class="headerlink" href="#yaw-decoding-detail" title="Permanent link">&para;</a></h2>
-<p>The yaw angle is reconstructed from the bin classification and residual regression:</p>
-<pre class="mermaid"><code>graph LR
-    BIN["Bin Logits&lt;br/&gt;(24 values)"] --&gt; ARGMAX["argmax&lt;br/&gt;→ winning bin index"]
-    ARGMAX --&gt; CENTER["Bin Center =&lt;br/&gt;-pi + (idx + 0.5) * 15deg"]
-
-    RES["Residual (sin, cos)"] --&gt; NORM["Normalize to&lt;br/&gt;unit circle"]
-    NORM --&gt; ATAN["atan2(sin, cos)&lt;br/&gt;→ residual angle"]
-
-    CENTER --&gt; ADD["Final Yaw =&lt;br/&gt;center + residual"]
-    ATAN --&gt; ADD
-
-    ADD --&gt; WRITE["Write to bbox:&lt;br/&gt;slot 6 = sin(yaw)&lt;br/&gt;slot 7 = cos(yaw)"]
-
-    style ADD fill:#d4edda,stroke:#28a745</code></pre>
-<h2 id="velocity-override">Velocity Override<a class="headerlink" href="#velocity-override" title="Permanent link">&para;</a></h2>
-<p>Simple replacement: the velocity head's output directly overwrites the regression branch's velocity slots:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bbox_preds[..., 8:10] = vel_preds    # (vx, vy) from camera-only BEV head
-</code></pre></div>
-<hr />
-<h2 id="test-time-temporal-processing">Test-Time Temporal Processing<a class="headerlink" href="#test-time-temporal-processing" title="Permanent link">&para;</a></h2>
-<p>During inference, the system maintains temporal context across frames within a scene:</p>
-<pre class="mermaid"><code>graph TD
-    subgraph "Frame-by-Frame Inference"
-        NEW_FRAME["New Frame Arrives"]
-        NEW_FRAME --&gt; CHECK["Same scene&lt;br/&gt;as previous?"]
-
-        CHECK --&gt;|"No (new scene)"| RESET["Reset prev_bev = None&lt;br/&gt;Reset prev_pos, prev_angle"]
-        CHECK --&gt;|"Yes (same scene)"| EGO["Compute Ego Motion&lt;br/&gt;delta_pos = cur_pos - prev_pos&lt;br/&gt;delta_angle = cur_angle - prev_angle"]
-
-        RESET --&gt; FWD["Forward Pass"]
-        EGO --&gt; ROTATE["Rotate prev_bev&lt;br/&gt;by ego yaw delta"]
-        ROTATE --&gt; FWD
-
-        FWD --&gt; DET["Detections"]
-        FWD --&gt; SAVE["Save bev_embed&lt;br/&gt;as next prev_bev"]
-        FWD --&gt; UPDATE["Update prev_pos,&lt;br/&gt;prev_angle"]
-    end
-
-    style DET fill:#d4edda,stroke:#28a745</code></pre>
-<p><strong>Key details</strong>:
-- Scene token tracking detects scene boundaries (new sequence = reset temporal state)
-- <code>prev_bev</code> is rotated to compensate for ego-vehicle yaw change using <code>torchvision.transforms.functional.rotate</code>
-- CAN bus provides the relative ego-motion delta (translation and yaw)
-- When <code>prev_bev</code> is None (first frame or new scene), TSA is skipped and the system operates in single-frame mode</p>
-<hr />
-<h2 id="inference-configuration">Inference Configuration<a class="headerlink" href="#inference-configuration" title="Permanent link">&para;</a></h2>
+<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
+<p>This reference maps the documented method to the repository files that implement it. It is intentionally scoped to the active BEVFormerFusion path and excludes legacy or experimental files that are not treated as part of the public method.</p>
+<h2 id="code-to-documentation-mapping">Code-to-documentation mapping<a class="headerlink" href="#code-to-documentation-mapping" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>Parameter</th>
-<th>Value</th>
+<th>Module</th>
+<th>File path</th>
+<th>Role in method</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Score threshold</td>
-<td>0.25</td>
+<td>Active config</td>
+<td><code>projects/configs/bevformer/bevformer_project.py</code></td>
+<td>Configuration root</td>
+<td>Declares the published model, dataset wiring, loss configuration, and optimization schedule.</td>
 </tr>
 <tr>
-<td>Max detections</td>
-<td>300</td>
+<td>Detector</td>
+<td><code>projects/mmdet3d_plugin/bevformer/detectors/bevformer.py</code></td>
+<td>Train and test orchestration</td>
+<td>Builds image and LiDAR features, manages temporal caches, and dispatches to the BEVFormer head.</td>
 </tr>
 <tr>
-<td>Post-center range</td>
-<td>[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0]</td>
+<td>Transformer</td>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer.py</code></td>
+<td>BEV construction and decoder fusion</td>
+<td>Computes BEV tokens, projects LiDAR BEV maps, snapshots <code>bev_embed_cam</code>, and applies decoder-side fusion.</td>
 </tr>
 <tr>
-<td>NMS</td>
-<td>None (NMS-free)</td>
+<td>Encoder sequence</td>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/encoder.py</code></td>
+<td>Multi-modal BEV refinement</td>
+<td>Implements <code>BEVFormerEncoder</code>, <code>BEVFormerLayer</code>, and <code>MM_BEVFormerLayer</code>, including the dual-attention fusion path.</td>
 </tr>
 <tr>
-<td>Video test mode</td>
-<td>True (carry prev_bev across frames)</td>
+<td>Camera cross-attention</td>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/spatial_cross_attention.py</code></td>
+<td>Camera-to-BEV lifting</td>
+<td>Projects BEV reference points into camera frames and performs image-side deformable attention.</td>
+</tr>
+<tr>
+<td>Temporal attention</td>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/temporal_self_attention.py</code></td>
+<td>Temporal BEV update</td>
+<td>Mixes current and previous BEV states through deformable attention over the BEV grid.</td>
+</tr>
+<tr>
+<td>Decoder</td>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/decoder.py</code></td>
+<td>Object-query decoding</td>
+<td>Runs decoder self-attention and cross-attention over the fused BEV tensor.</td>
+</tr>
+<tr>
+<td>Detection head</td>
+<td><code>projects/mmdet3d_plugin/bevformer/dense_heads/bevformer_head.py</code></td>
+<td>Multi-branch prediction</td>
+<td>Produces class scores, boxes, yaw bins, yaw residuals, and dedicated velocity predictions.</td>
+</tr>
+<tr>
+<td>BBox coder</td>
+<td><code>projects/mmdet3d_plugin/core/bbox/coders/nms_free_coder.py</code></td>
+<td>Final decoding</td>
+<td>Converts decoder outputs into final boxes and injects velocity-head predictions into the output boxes.</td>
+</tr>
+<tr>
+<td>Dataset</td>
+<td><code>projects/mmdet3d_plugin/datasets/nuscenes_dataset.py</code></td>
+<td>Temporal sample assembly</td>
+<td>Builds temporal queues, enriches <code>img_metas</code>, and forwards geometry metadata required by the transformer.</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="why-nms-free">Why NMS-Free?<a class="headerlink" href="#why-nms-free" title="Permanent link">&para;</a></h2>
-<p>The DETR-style decoder with Hungarian matching trains each query to specialize in detecting one object. Unlike anchor-based detectors that produce many overlapping proposals for each object, the one-to-one matching ensures queries learn non-overlapping responsibilities. At inference, simple top-K selection is sufficient.</p>
-<hr />
-<h2 id="key-files">Key Files<a class="headerlink" href="#key-files" title="Permanent link">&para;</a></h2>
+<h2 id="public-command-surface">Public command surface<a class="headerlink" href="#public-command-surface" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>File</th>
+<th>Entry point</th>
 <th>Path</th>
-<th>Role</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>nms_free_coder.py</code></td>
-<td><code>core/bbox/coders/nms_free_coder.py</code></td>
-<td><code>decode_single()</code>: top-K, yaw/vel override, denormalize</td>
+<td>Training CLI</td>
+<td><code>tools/train.py</code></td>
+<td>Launches model training from a config file.</td>
 </tr>
 <tr>
-<td><code>util.py</code></td>
-<td><code>core/bbox/util.py</code></td>
-<td><code>denormalize_bbox()</code>, <code>overwrite_sincos_from_bins()</code></td>
+<td>Evaluation CLI</td>
+<td><code>tools/test.py</code></td>
+<td>Runs evaluation and optional BEV visualization.</td>
 </tr>
 <tr>
-<td><code>bevformer.py</code></td>
-<td><code>bevformer/detectors/bevformer.py</code></td>
-<td><code>forward_test()</code>, <code>simple_test()</code>: temporal state management</td>
+<td>Benchmark CLI</td>
+<td><code>tools/analysis_tools/benchmark.py</code></td>
+<td>Measures inference throughput when the runtime stack is available.</td>
+</tr>
+<tr>
+<td>Dataset conversion</td>
+<td><code>tools/create_data.py</code></td>
+<td>Creates nuScenes temporal info files and related annotations.</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<p><a href="../appendix-tensor-shapes/">Next: Appendix A - Tensor Shape Reference</a></p>
+<h2 id="documentation-roles">Documentation roles<a class="headerlink" href="#documentation-roles" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Documentation page</th>
+<th>Primary code anchors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>architecture.md</code></td>
+<td>Detector, transformer, encoder, head, dataset</td>
+</tr>
+<tr>
+<td><code>bevformer_comparison.md</code></td>
+<td>Official BEVFormer config plus active config, transformer, encoder, head</td>
+</tr>
+<tr>
+<td><code>experiments.md</code></td>
+<td>Result workbooks, active config, canonical metrics JSON</td>
+</tr>
+<tr>
+<td><code>usage.md</code></td>
+<td>Active config, <code>tools/train.py</code>, <code>tools/test.py</code>, <code>tools/create_data.py</code>, <code>tools/analysis_tools/benchmark.py</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="legacy-and-excluded-files">Legacy and excluded files<a class="headerlink" href="#legacy-and-excluded-files" title="Permanent link">&para;</a></h2>
+<p>The following paths are intentionally excluded from the public method narrative:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>projects/configs/bevformerv2/</code></td>
+<td>Separate experiment family, not the active BEVFormerFusion path.</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/modules/transformer copy.py</code></td>
+<td>Stale duplicate of the active transformer implementation.</td>
+</tr>
+<tr>
+<td><code>projects/mmdet3d_plugin/bevformer/dense_heads/bevformer_head_old.py</code></td>
+<td>Retired head variant.</td>
+</tr>
+<tr>
+<td><code>tools/tests/test_petr3d_bevformer.py</code></td>
+<td>Imports missing <code>petr3d_embedding.py</code> and therefore is not a valid regression test for the published method.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="interface-notes">Interface notes<a class="headerlink" href="#interface-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>No new public Python API is introduced by this documentation overhaul.</li>
+<li>The authoritative public outputs are the README, the MkDocs site rooted at <code>/</code>, and the canonical metrics artifact at <code>docs/assets/data/metrics.json</code>.</li>
+<li>The generated <code>site/</code> directory remains a build artifact and is not the editable source of truth.</li>
+</ul>
 
 
 
@@ -1112,6 +843,8 @@
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/metrics.js"></script>
       
     
   </body>

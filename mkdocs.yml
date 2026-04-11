@@ -1,20 +1,22 @@
 site_name: BEVFormerFusion Docs
-site_description: Multi-modal 3D object detection fusing camera and LiDAR via BEVFormer
-docs_dir: doc
+site_description: Research-grade documentation for BEVFormerFusion and its BEVFormer-relative modifications
+repo_url: https://github.com/xiaotwu/BEVFormerFusion
+repo_name: xiaotwu/BEVFormerFusion
+docs_dir: docs
 
 theme:
   name: material
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: blue grey
       accent: amber
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: blue grey
       accent: amber
       toggle:
         icon: material/brightness-4
@@ -29,20 +31,17 @@ theme:
 
 nav:
   - Home: index.md
-  - Architecture Overview: 00-overview.md
-  - Data Pipeline: 01-data-pipeline.md
-  - Camera Branch: 02-camera-branch.md
-  - LiDAR Branch: 03-lidar-branch.md
-  - Encoder Fusion: 04-encoder-fusion.md
-  - Decoder Fusion: 05-decoder-fusion.md
-  - Transformer Decoder: 06-transformer-decoder.md
-  - Detection Heads: 07-detection-heads.md
-  - Velocity Head: 07a-velocity-head.md
-  - Loss & Training: 08-loss-and-training.md
-  - Inference: 09-inference.md
-  - Appendices:
-      - Tensor Shapes: appendix-tensor-shapes.md
-      - File Map: appendix-file-map.md
+  - Architecture: architecture.md
+  - BEVFormer Comparison: bevformer_comparison.md
+  - Experiments: experiments.md
+  - Usage: usage.md
+  - API Reference: api_reference.md
+
+extra_css:
+  - assets/stylesheets/research.css
+
+extra_javascript:
+  - assets/javascripts/metrics.js
 
 markdown_extensions:
   - toc:

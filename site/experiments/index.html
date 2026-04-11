@@ -1,0 +1,1104 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Research-grade documentation for BEVFormerFusion and its BEVFormer-relative modifications">
+      
+      
+      
+      
+        <link rel="prev" href="../bevformer_comparison/">
+      
+      
+        <link rel="next" href="../usage/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Experiments - BEVFormerFusion Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/research.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#experiments" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BEVFormerFusion Docs" class="md-header__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BEVFormerFusion Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Experiments
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/xiaotwu/BEVFormerFusion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xiaotwu/BEVFormerFusion
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BEVFormerFusion Docs" class="md-nav__button md-logo" aria-label="BEVFormerFusion Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BEVFormerFusion Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/xiaotwu/BEVFormerFusion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    xiaotwu/BEVFormerFusion
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bevformer_comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BEVFormer Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#experiment-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12gb-gpu-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12GB GPU table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoint-progression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint progression
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checkpoint progression">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-baseline-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local baseline curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fusion-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fusion curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provenance-retained-after-workbook-deletion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provenance retained after workbook deletion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paper-style-experiment-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paper-style experiment summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#experiment-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12gb-gpu-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12GB GPU table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoint-progression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint progression
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checkpoint progression">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-baseline-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local baseline curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fusion-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fusion curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provenance-retained-after-workbook-deletion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provenance retained after workbook deletion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paper-style-experiment-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Paper-style experiment summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="experiments">Experiments<a class="headerlink" href="#experiments" title="Permanent link">&para;</a></h1>
+<p>This page publishes only repository-tracked evidence. Accuracy numbers come from the result workbooks that were normalized into <code>docs/assets/data/metrics.json</code>. Runtime numbers remain pending because the repository does not contain a benchmark or memory-profiling artifact for the documented checkpoints.</p>
+<h2 id="experiment-summary">Experiment summary<a class="headerlink" href="#experiment-summary" title="Permanent link">&para;</a></h2>
+<p>The active fusion path is trained with <code>projects/configs/bevformer/bevformer_project.py</code>, which defines a <code>100 x 100</code> BEV grid, <code>450</code> object queries, a four-layer encoder, a six-layer decoder, AdamW with <code>lr = 2e-4</code>, and <code>fusion_mode = encoder_decoder</code>. The local baseline curve was normalized from <code>results/Baseline_Results_Summary.xlsx</code>, while the fused-model curve was normalized from <code>results/Enc_Dec_Results_Summary.xlsx</code>. <code>results/EncoderFusion_Results_SHS.xlsx</code> was byte-identical to the fused workbook and is therefore treated as a duplicate artifact rather than a second experiment.</p>
+<h2 id="main-results">Main results<a class="headerlink" href="#main-results" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Config</th>
+<th style="text-align: right;">Best iter</th>
+<th style="text-align: right;">mAP</th>
+<th style="text-align: right;">NDS</th>
+<th>FPS</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local BEVFormer baseline</td>
+<td><code>projects/configs/bevformer/bevformer_base.py</code></td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.2011</td>
+<td style="text-align: right;">0.2192</td>
+<td>Pending</td>
+<td>Pending</td>
+</tr>
+<tr>
+<td>BEVFormerFusion</td>
+<td><code>projects/configs/bevformer/bevformer_project.py</code></td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.2507</td>
+<td style="text-align: right;">0.2546</td>
+<td>Pending</td>
+<td>Pending</td>
+</tr>
+</tbody>
+</table>
+<h2 id="12gb-gpu-table">12GB GPU table<a class="headerlink" href="#12gb-gpu-table" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Memory</th>
+<th>FPS</th>
+<th>Accuracy</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BEVFormerFusion on a 12GB GPU</td>
+<td>Pending</td>
+<td>Pending</td>
+<td>Pending</td>
+<td>The repository does not contain a fresh 12GB profiling artifact. This table is intentionally left open until measured runtime evidence is added.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checkpoint-progression">Checkpoint progression<a class="headerlink" href="#checkpoint-progression" title="Permanent link">&para;</a></h2>
+<h3 id="local-baseline-curve">Local baseline curve<a class="headerlink" href="#local-baseline-curve" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Iter</th>
+<th style="text-align: right;">mAP</th>
+<th style="text-align: right;">NDS</th>
+<th style="text-align: right;">mATE</th>
+<th style="text-align: right;">mAOE</th>
+<th style="text-align: right;">mAVE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">10000</td>
+<td style="text-align: right;">0.0925</td>
+<td style="text-align: right;">0.1336</td>
+<td style="text-align: right;">1.1162</td>
+<td style="text-align: right;">1.2415</td>
+<td style="text-align: right;">1.1255</td>
+</tr>
+<tr>
+<td style="text-align: right;">20000</td>
+<td style="text-align: right;">0.1470</td>
+<td style="text-align: right;">0.1582</td>
+<td style="text-align: right;">1.0150</td>
+<td style="text-align: right;">1.0189</td>
+<td style="text-align: right;">1.2113</td>
+</tr>
+<tr>
+<td style="text-align: right;">30000</td>
+<td style="text-align: right;">0.1552</td>
+<td style="text-align: right;">0.1661</td>
+<td style="text-align: right;">1.0017</td>
+<td style="text-align: right;">0.9718</td>
+<td style="text-align: right;">1.2108</td>
+</tr>
+<tr>
+<td style="text-align: right;">40000</td>
+<td style="text-align: right;">0.1730</td>
+<td style="text-align: right;">0.1815</td>
+<td style="text-align: right;">1.0060</td>
+<td style="text-align: right;">0.9187</td>
+<td style="text-align: right;">1.2434</td>
+</tr>
+<tr>
+<td style="text-align: right;">50000</td>
+<td style="text-align: right;">0.1824</td>
+<td style="text-align: right;">0.1859</td>
+<td style="text-align: right;">0.9909</td>
+<td style="text-align: right;">0.9784</td>
+<td style="text-align: right;">1.1701</td>
+</tr>
+<tr>
+<td style="text-align: right;">60000</td>
+<td style="text-align: right;">0.1869</td>
+<td style="text-align: right;">0.1912</td>
+<td style="text-align: right;">1.0138</td>
+<td style="text-align: right;">0.9268</td>
+<td style="text-align: right;">1.1669</td>
+</tr>
+<tr>
+<td style="text-align: right;">70000</td>
+<td style="text-align: right;">0.2019</td>
+<td style="text-align: right;">0.2153</td>
+<td style="text-align: right;">0.9491</td>
+<td style="text-align: right;">0.8435</td>
+<td style="text-align: right;">1.0882</td>
+</tr>
+<tr>
+<td style="text-align: right;">80000</td>
+<td style="text-align: right;">0.1915</td>
+<td style="text-align: right;">0.2152</td>
+<td style="text-align: right;">0.9632</td>
+<td style="text-align: right;">0.7844</td>
+<td style="text-align: right;">1.0605</td>
+</tr>
+<tr>
+<td style="text-align: right;">90000</td>
+<td style="text-align: right;">0.1973</td>
+<td style="text-align: right;">0.2185</td>
+<td style="text-align: right;">0.9535</td>
+<td style="text-align: right;">0.7891</td>
+<td style="text-align: right;">1.0675</td>
+</tr>
+<tr>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.2011</td>
+<td style="text-align: right;">0.2192</td>
+<td style="text-align: right;">0.9490</td>
+<td style="text-align: right;">0.8150</td>
+<td style="text-align: right;">1.0415</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fusion-curve">Fusion curve<a class="headerlink" href="#fusion-curve" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Iter</th>
+<th style="text-align: right;">mAP</th>
+<th style="text-align: right;">NDS</th>
+<th style="text-align: right;">mATE</th>
+<th style="text-align: right;">mAOE</th>
+<th style="text-align: right;">mAVE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">20000</td>
+<td style="text-align: right;">0.0898</td>
+<td style="text-align: right;">0.1308</td>
+<td style="text-align: right;">1.0949</td>
+<td style="text-align: right;">1.1403</td>
+<td style="text-align: right;">1.2492</td>
+</tr>
+<tr>
+<td style="text-align: right;">40000</td>
+<td style="text-align: right;">0.1271</td>
+<td style="text-align: right;">0.1592</td>
+<td style="text-align: right;">1.0232</td>
+<td style="text-align: right;">1.0656</td>
+<td style="text-align: right;">1.1028</td>
+</tr>
+<tr>
+<td style="text-align: right;">60000</td>
+<td style="text-align: right;">0.1785</td>
+<td style="text-align: right;">0.1897</td>
+<td style="text-align: right;">0.9835</td>
+<td style="text-align: right;">1.0142</td>
+<td style="text-align: right;">1.1361</td>
+</tr>
+<tr>
+<td style="text-align: right;">80000</td>
+<td style="text-align: right;">0.2066</td>
+<td style="text-align: right;">0.2216</td>
+<td style="text-align: right;">0.9197</td>
+<td style="text-align: right;">0.8671</td>
+<td style="text-align: right;">1.0771</td>
+</tr>
+<tr>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.2507</td>
+<td style="text-align: right;">0.2546</td>
+<td style="text-align: right;">0.8697</td>
+<td style="text-align: right;">0.8241</td>
+<td style="text-align: right;">1.1375</td>
+</tr>
+</tbody>
+</table>
+<h2 id="analysis">Analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
+<p>The best fused checkpoint at 100k iterations improves the local baseline by <code>+0.0496</code> mAP and <code>+0.0354</code> NDS. The same checkpoint also lowers mATE from <code>0.9490</code> to <code>0.8697</code> and lowers mAAE from <code>0.3333</code> to <code>0.2963</code>. The published workbooks do not show a corresponding runtime trade-off because they record checkpoint-level detection metrics only, not inference throughput or memory usage.</p>
+<p>The fused curve starts below the baseline at early checkpoints and overtakes the baseline by 80k iterations. That pattern is visible directly in the normalized curves and is therefore reported here without attributing a causal explanation beyond the architectural changes documented elsewhere.</p>
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dataset</td>
+<td>nuScenes with temporal train/val info files</td>
+</tr>
+<tr>
+<td>Active config</td>
+<td><code>projects/configs/bevformer/bevformer_project.py</code></td>
+</tr>
+<tr>
+<td>BEV resolution</td>
+<td><code>100 x 100</code></td>
+</tr>
+<tr>
+<td>Object queries</td>
+<td><code>450</code></td>
+</tr>
+<tr>
+<td>Encoder / decoder layers</td>
+<td><code>4 / 6</code></td>
+</tr>
+<tr>
+<td>Queue length</td>
+<td><code>4</code></td>
+</tr>
+<tr>
+<td>Optimizer</td>
+<td>AdamW</td>
+</tr>
+<tr>
+<td>Learning rate</td>
+<td><code>2e-4</code></td>
+</tr>
+<tr>
+<td>Weight decay</td>
+<td><code>0.01</code></td>
+</tr>
+<tr>
+<td>Backbone LR multiplier</td>
+<td><code>0.1</code></td>
+</tr>
+<tr>
+<td>Fusion mode</td>
+<td><code>encoder_decoder</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="provenance-retained-after-workbook-deletion">Provenance retained after workbook deletion<a class="headerlink" href="#provenance-retained-after-workbook-deletion" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>SHA256</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>results/Baseline_Results_Summary.xlsx</code></td>
+<td><code>949da5528e79407b18d7a22668300432be5203dc33de8f7f8cb46ee8b1e3e2cb</code></td>
+<td>Baseline curve and best-checkpoint metrics</td>
+</tr>
+<tr>
+<td><code>results/Enc_Dec_Results_Summary.xlsx</code></td>
+<td><code>f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5</code></td>
+<td>Canonical fusion curve and best-checkpoint metrics</td>
+</tr>
+<tr>
+<td><code>results/EncoderFusion_Results_SHS.xlsx</code></td>
+<td><code>f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5</code></td>
+<td>Duplicate of the canonical fusion workbook</td>
+</tr>
+</tbody>
+</table>
+<h2 id="paper-style-experiment-summary">Paper-style experiment summary<a class="headerlink" href="#paper-style-experiment-summary" title="Permanent link">&para;</a></h2>
+<p>The repository-tracked experiments show that the documented fusion path surpasses the local BEVFormer baseline on the available checkpoint summaries. At the shared 100k-iteration endpoint, BEVFormerFusion reaches <code>0.2507</code> mAP and <code>0.2546</code> NDS, compared with <code>0.2011</code> mAP and <code>0.2192</code> NDS for the local baseline curve. These tables should be read as accuracy evidence only: the repository does not currently include benchmark traces for FPS, peak memory, or a dedicated 12GB GPU evaluation.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../assets/javascripts/metrics.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,169 +1,121 @@
 # BEVFormerFusion
 
-Multi-modal 3D object detection fusing camera and LiDAR inputs via BEVFormer with dual encoder-decoder side fusion.
+BEVFormerFusion is a BEVFormer-derived multi-modal 3D detector for nuScenes. The published implementation keeps the upstream camera-to-BEV pipeline and adds a PointPillars LiDAR branch, encoder-side LiDAR cross-attention, decoder-side BEV fusion, and a dedicated velocity head. All metrics reported below are traced to the checked-in experiment workbooks or to repository code; no estimated runtime values are published.
 
-## Architecture
+## Introduction
 
-BEVFormerFusion extends BEVFormer with three innovations:
+The active method scope is defined by `projects/configs/bevformer/bevformer_project.py`, `projects/mmdet3d_plugin/bevformer/detectors/bevformer.py`, `projects/mmdet3d_plugin/bevformer/modules/transformer.py`, `projects/mmdet3d_plugin/bevformer/modules/encoder.py`, `projects/mmdet3d_plugin/bevformer/dense_heads/bevformer_head.py`, and `projects/mmdet3d_plugin/datasets/nuscenes_dataset.py`. The official BEVFormer repository is used as the baseline reference for all architectural comparisons in this repository.
 
-- **Encoder-Side Fusion** -- LiDAR BEV features are injected into every encoder layer via parallel deformable cross-attention, blended with camera cross-attention through a learnable weight
-- **Decoder-Side Fusion** -- After the encoder, LiDAR features are concatenated and projected with the BEV embedding before entering the decoder
-- **Velocity Head** -- A dedicated cross-attention head that attends to camera-only BEV features (before LiDAR fusion) to predict object velocity, solving the temporal signal dilution problem
+Project documentation:
 
-```mermaid
-graph TD
-    %% ── Inputs ──
-    IMG["Multi-View Images<br/>(6 cameras)"]
-    PTS["Point Cloud"]
+- GitHub Pages: <https://xiaotwu.github.io/BEVFormerFusion/>
+- Architecture: [docs/architecture.md](docs/architecture.md)
+- BEVFormer comparison: [docs/bevformer_comparison.md](docs/bevformer_comparison.md)
+- Experiments: [docs/experiments.md](docs/experiments.md)
+- Usage: [docs/usage.md](docs/usage.md)
+- API reference: [docs/api_reference.md](docs/api_reference.md)
 
-    %% ── Backbones ──
-    RES["ResNet-50 + FPN"]
-    PP["PointPillars"]
+## Key Contributions
 
-    IMG --> RES
-    PTS --> PP
+- Adds a PointPillars LiDAR BEV branch alongside the BEVFormer camera path.
+- Injects LiDAR evidence inside the encoder through a second deformable cross-attention path blended with camera attention.
+- Fuses LiDAR BEV features again before the decoder so detection queries operate on a joint representation.
+- Preserves camera-only temporal cues for velocity estimation through a dedicated motion head.
 
-    RES --> |"Multi-Scale Features"| CAM_SCA
-    PP  --> |"LiDAR BEV Features"| LID_PROJ["1x1 Conv Projection"]
+## Method Overview
 
-    %% ── Encoder (x4 layers) ──
-    subgraph ENC["Encoder Layer  x 4"]
-        direction TB
-        TSA["Temporal Self-Attention<br/>with History BEV"]
-        CAM_SCA["Camera Spatial<br/>Cross-Attention"]
-        LID_SCA["LiDAR Deformable<br/>Cross-Attention"]
-        BLEND["Learnable Blend<br/>w * Camera + (1-w) * LiDAR"]
-        FFN_E["Feed-Forward Network"]
+The image branch follows the BEVFormer backbone and transformer scaffold: multi-view image features are encoded into BEV queries with temporal self-attention and deformable camera cross-attention. BEVFormerFusion augments this path with projected LiDAR BEV features from PointPillars. Each encoder layer applies parallel camera and LiDAR cross-attention, then blends the two responses before the feed-forward block. After the encoder, the LiDAR BEV tensor is concatenated with the camera-derived BEV embedding and projected before the decoder. The decoder retains the BEVFormer query refinement path, while the detection head adds explicit yaw-bin/residual supervision and a velocity head that attends to the camera-only BEV branch.
 
-        TSA --> CAM_SCA
-        TSA --> LID_SCA
-        CAM_SCA --> BLEND
-        LID_SCA --> BLEND
-        BLEND --> FFN_E
-    end
+## Installation
 
-    LID_PROJ --> |"(a) Encoder Fusion"| LID_SCA
-    PREV["History BEV<br/>B(t-1)"] -.-> TSA
+The repository does not currently ship a lockfile. Install the BEVFormer/MMDetection3D stack in a compatible CUDA environment, then export the repository root on `PYTHONPATH`.
 
-    FFN_E --> BEV_CAM["Camera-Only BEV"]
-    FFN_E --> CONCAT
+Validated dependency targets from the repository configuration:
 
-    %% ── Decoder Fusion ──
-    LID_PROJ --> |"(b) Decoder Fusion"| CONCAT["Concat + Linear<br/>Projection"]
-    CONCAT --> BEV_FUSED["Fused BEV"]
+- Python 3.9
+- PyTorch 2.x with CUDA
+- `mmcv-full` 1.7.x
+- `mmdet` 2.28.x
+- `mmdet3d` 1.0.0rc6
+- `nuscenes-devkit`
 
-    %% ── Decoder (x6 layers) ──
-    subgraph DEC["Decoder Layer  x 6"]
-        direction TB
-        SELF_A["Query Self-Attention"]
-        CROSS_A["Deformable Cross-Attention<br/>to Fused BEV"]
-        FFN_D["Feed-Forward Network"]
-        REFINE["Reference Point Refinement"]
-        SELF_A --> CROSS_A --> FFN_D --> REFINE
-    end
-
-    BEV_FUSED --> CROSS_A
-    QUERIES["Object Queries<br/>(450)"] --> SELF_A
-
-    %% ── Heads ──
-    REFINE --> CLS["Classification<br/>Head"]
-    REFINE --> BOX["BBox Regression<br/>Head"]
-    REFINE --> YAW["Yaw Bin/Residual<br/>Head"]
-    REFINE --> VEL_XA["Velocity Cross-Attention<br/>→ Camera-Only BEV"]
-    BEV_CAM -.-> |"temporal signal<br/>preserved"| VEL_XA
-    VEL_XA --> VEL["Velocity Head<br/>(vx, vy)"]
-
-    %% ── Styles ──
-    classDef input fill:#e8f4fd,stroke:#4a90d9
-    classDef cam fill:#d4edda,stroke:#28a745
-    classDef lid fill:#fff3cd,stroke:#ffc107
-    classDef fuse fill:#f8d7da,stroke:#dc3545
-    classDef head fill:#e2d9f3,stroke:#6f42c1
-    classDef dec fill:#d1ecf1,stroke:#17a2b8
-
-    class IMG,PTS,PREV,QUERIES input
-    class RES,CAM_SCA,TSA,BEV_CAM cam
-    class PP,LID_PROJ,LID_SCA lid
-    class BLEND,CONCAT,BEV_FUSED,VEL_XA fuse
-    class CLS,BOX,YAW,VEL head
-    class SELF_A,CROSS_A,FFN_D,REFINE dec
-```
-
-## Documentation
-
-[BEVFormerFusion](https://xiaotwu.github.io/BEVFormerFusion)
-
-## Quick Start
+Environment setup:
 
 ```bash
-conda activate bev
 export PYTHONPATH=.
 ```
 
-### Train
+## Quick Start
+
+Train:
 
 ```bash
-python tools/train.py projects/configs/bevformer/bevformer_project.py
+python3 tools/train.py projects/configs/bevformer/bevformer_project.py
 ```
 
-### Evaluate
+Evaluate:
 
 ```bash
-python tools/test.py \
-    projects/configs/bevformer/bevformer_project.py \
-    work_dirs/bevformer_project/iter_100000.pth \
-    --eval bbox
+python3 tools/test.py \
+  projects/configs/bevformer/bevformer_project.py \
+  work_dirs/bevformer_project/iter_100000.pth \
+  --eval bbox
 ```
 
-### Visualize BEV
+Visualize BEV predictions:
 
 ```bash
-python tools/test.py \
-    projects/configs/bevformer/bevformer_project.py \
-    work_dirs/bevformer_project/iter_100000.pth \
-    --eval bbox \
-    --viz-bev --viz-num 20 --viz-score-thr 0.2 \
-    --viz-outdir work_dirs/bevformer_project/bev_viz
+python3 tools/test.py \
+  projects/configs/bevformer/bevformer_project.py \
+  work_dirs/bevformer_project/iter_100000.pth \
+  --eval bbox \
+  --viz-bev --viz-num 20 --viz-score-thr 0.2 \
+  --viz-outdir work_dirs/bevformer_project/bev_viz
 ```
 
-### Resume Training
+Benchmark throughput when the runtime stack is available:
 
 ```bash
-python tools/train.py \
-    projects/configs/bevformer/bevformer_project.py \
-    --resume-from work_dirs/bevformer_project/iter_100000.pth
+python3 tools/analysis_tools/benchmark.py \
+  projects/configs/bevformer/bevformer_project.py \
+  --checkpoint work_dirs/bevformer_project/iter_100000.pth \
+  --samples 200
 ```
-
-### Monitor
-
-```bash
-tensorboard --logdir work_dirs/bevformer_project/tf_logs
-```
-
-## Training Configuration
-
-| Parameter | Value |
-|-----------|-------|
-| Iterations | 100,000 |
-| Precision | FP32 |
-| Optimizer | AdamW, lr=2e-4, weight_decay=0.01 |
-| LR schedule | Cosine annealing, warmup=10K iters |
-| Backbone | ResNet50 (frozen stage 1, lr_mult=0.1) |
-| BEV size | 100 x 100 |
-| Encoder / Decoder layers | 4 / 6 |
-| Object queries | 450 |
-| Fusion mode | `encoder_decoder` |
-
-See [Chapter 8](doc/08-loss-and-training.md) for full training details.
 
 ## Dataset
 
-nuScenes with temporal annotations. 10 classes: car, truck, bus, trailer, construction_vehicle, pedestrian, motorcycle, bicycle, traffic_cone, barrier.
+The repository targets nuScenes with temporal metadata. The data conversion path is implemented in `tools/create_data.py` and writes temporal info files such as `nuscenes_infos_temporal_train.pkl` and `nuscenes_infos_temporal_val.pkl`.
 
-## Requirements
+Example conversion command:
 
-- PyTorch 2.x with CUDA
-- mmcv-full 1.7.x
-- mmdet 2.28.x
-- mmdet3d 1.0.0rc6
-- nuscenes-devkit
+```bash
+python3 tools/create_data.py nuscenes \
+  --root-path ./data/nuscenes \
+  --canbus ./data \
+  --version v1.0 \
+  --max-sweeps 10
+```
+
+The published model predicts the standard nuScenes 10-class set: car, truck, construction_vehicle, bus, trailer, barrier, motorcycle, bicycle, pedestrian, and traffic_cone.
+
+## Results
+
+The baseline metrics were normalized from `results/Baseline_Results_Summary.xlsx`. The fused-model metrics were normalized from `results/Enc_Dec_Results_Summary.xlsx`; `results/EncoderFusion_Results_SHS.xlsx` was byte-identical and is treated as a duplicate artifact rather than a second run.
+
+| Model | Best Checkpoint | mAP | NDS | FPS | Memory |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| BEVFormer baseline | 100000 | 0.2011 | 0.2192 | Pending | Pending |
+| BEVFormerFusion | 100000 | 0.2507 | 0.2546 | Pending | Pending |
+
+At the best recorded checkpoint, the fused model improves mAP by `+0.0496` and NDS by `+0.0354` over the baseline workbook curve. A fresh 12GB GPU runtime profile is still pending because no validated profiling artifact is currently tracked in this repository.
+
+## Documentation
+
+The canonical documentation source now lives in `docs/` and is published through MkDocs/Material:
+
+- Landing page: [docs/index.md](docs/index.md)
+- Architecture summary: [docs/architecture.md](docs/architecture.md)
+- BEVFormer comparison: [docs/bevformer_comparison.md](docs/bevformer_comparison.md)
+- Experiment tables and provenance: [docs/experiments.md](docs/experiments.md)
+- Command reference: [docs/usage.md](docs/usage.md)
+- Module map: [docs/api_reference.md](docs/api_reference.md)
