@@ -10,10 +10,10 @@ Project documentation:
 
 - GitHub Pages: <https://xiaotwu.github.io/BEVFormerFusion/>
 - Architecture: [docs/architecture.md](docs/architecture.md)
-- BEVFormer comparison: [docs/bevformer_comparison.md](docs/bevformer_comparison.md)
+- BEVFormer comparison: [docs/bevformer-comparison.md](docs/bevformer-comparison.md)
 - Experiments: [docs/experiments.md](docs/experiments.md)
 - Usage: [docs/usage.md](docs/usage.md)
-- API reference: [docs/api_reference.md](docs/api_reference.md)
+- API reference: [docs/api-reference.md](docs/api-reference.md)
 
 ## Key Contributions
 
@@ -115,7 +115,7 @@ The canonical documentation source now lives in `docs/` and is published through
 
 - Landing page: [docs/index.md](docs/index.md)
 - Architecture summary: [docs/architecture.md](docs/architecture.md)
-- BEVFormer comparison: [docs/bevformer_comparison.md](docs/bevformer_comparison.md)
+- BEVFormer comparison: [docs/bevformer-comparison.md](docs/bevformer-comparison.md)
 - Experiment tables and provenance: [docs/experiments.md](docs/experiments.md)
 - Command reference: [docs/usage.md](docs/usage.md)
-- Module map: [docs/api_reference.md](docs/api_reference.md)
+- Module map: [docs/api-reference.md](docs/api-reference.md)

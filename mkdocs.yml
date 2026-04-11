@@ -32,10 +32,10 @@ theme:
 nav:
   - Home: index.md
   - Architecture: architecture.md
-  - BEVFormer Comparison: bevformer_comparison.md
+  - BEVFormer Comparison: bevformer-comparison.md
   - Experiments: experiments.md
   - Usage: usage.md
-  - API Reference: api_reference.md
+  - API Reference: api-reference.md
 
 extra_css:
   - assets/stylesheets/research.css

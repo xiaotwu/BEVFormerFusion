@@ -31,7 +31,7 @@ This reference maps the documented method to the repository files that implement
 | Documentation page | Primary code anchors |
 | --- | --- |
 | `architecture.md` | Detector, transformer, encoder, head, dataset |
-| `bevformer_comparison.md` | Official BEVFormer config plus active config, transformer, encoder, head |
+| `bevformer-comparison.md` | Official BEVFormer config plus active config, transformer, encoder, head |
 | `experiments.md` | Result workbooks, active config, canonical metrics JSON |
 | `usage.md` | Active config, `tools/train.py`, `tools/test.py`, `tools/create_data.py`, `tools/analysis_tools/benchmark.py` |
 

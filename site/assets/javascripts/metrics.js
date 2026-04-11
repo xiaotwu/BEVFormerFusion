@@ -1,4 +1,6 @@
 (() => {
+  let lastRenderedPath = null;
+
   function formatMetric(value, digits = 4) {
     if (value === null || value === undefined || Number.isNaN(Number(value))) {
       return "Pending";
@@ -17,6 +19,13 @@
     const node = document.getElementById(id);
     if (node) {
       node.textContent = text;
+    }
+  }
+
+  function setHtml(id, html) {
+    const node = document.getElementById(id);
+    if (node) {
+      node.innerHTML = html;
     }
   }
 
@@ -199,13 +208,26 @@
     `;
   }
 
-  async function main() {
+  function getMetricsUrl() {
+    const script = Array.from(document.scripts).find((node) =>
+      node.src && node.src.includes("/assets/javascripts/metrics.js")
+    );
+    if (script) {
+      return new URL("../data/metrics.json", script.src);
+    }
+    return new URL("assets/data/metrics.json", window.location.href);
+  }
+
+  async function renderMetrics() {
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    if (currentPath === lastRenderedPath && !document.getElementById("hero-runtime-note")) {
+      return;
+    }
+    lastRenderedPath = currentPath;
+
     try {
-      const scriptUrl = document.currentScript && document.currentScript.src
-        ? document.currentScript.src
-        : window.location.href;
-      const metricsUrl = new URL("../data/metrics.json", scriptUrl);
-      const response = await fetch(metricsUrl);
+      const metricsUrl = getMetricsUrl();
+      const response = await fetch(metricsUrl, { cache: "no-store" });
       if (!response.ok) {
         throw new Error(`Failed to load ${metricsUrl}`);
       }
@@ -217,13 +239,19 @@
       buildCurve(metrics.curves);
     } catch (error) {
       console.error(error);
-      setText("hero-runtime-note", "Metrics could not be loaded. Check docs/assets/data/metrics.json.");
+      setText("hero-runtime-note", "Metrics could not be loaded. Check assets/data/metrics.json.");
+      setHtml("main-results-body", '<tr><td colspan="6">Metrics could not be loaded.</td></tr>');
+      setHtml("profile-results-body", '<tr><td colspan="5">Profile status could not be loaded.</td></tr>');
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", main);
+  if (typeof document$ !== "undefined" && document$.subscribe) {
+    document$.subscribe(() => {
+      renderMetrics();
+    });
+  } else if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderMetrics);
   } else {
-    main();
+    renderMetrics();
   }
 })();
