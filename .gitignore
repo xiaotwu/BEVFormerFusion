@@ -1,4 +1,8 @@
 data/
+!docs/assets/data/
+!docs/assets/data/metrics.json
+!site/assets/data/
+!site/assets/data/metrics.json
 test/
 val/
 work_dirs/

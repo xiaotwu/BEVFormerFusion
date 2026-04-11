@@ -1,0 +1,248 @@
+{
+  "metadata": {
+    "project": "BEVFormerFusion",
+    "baseline_reference": {
+      "label": "fundamentalvision/BEVFormer",
+      "repository": "https://github.com/fundamentalvision/BEVFormer",
+      "config_path": "projects/configs/bevformer/bevformer_base.py",
+      "transformer_path": "projects/mmdet3d_plugin/bevformer/modules/transformer.py",
+      "encoder_path": "projects/mmdet3d_plugin/bevformer/modules/encoder.py",
+      "head_path": "projects/mmdet3d_plugin/bevformer/dense_heads/bevformer_head.py"
+    },
+    "local_active_scope": {
+      "config_path": "projects/configs/bevformer/bevformer_project.py",
+      "detector_path": "projects/mmdet3d_plugin/bevformer/detectors/bevformer.py",
+      "transformer_path": "projects/mmdet3d_plugin/bevformer/modules/transformer.py",
+      "encoder_path": "projects/mmdet3d_plugin/bevformer/modules/encoder.py",
+      "head_path": "projects/mmdet3d_plugin/bevformer/dense_heads/bevformer_head.py",
+      "dataset_path": "projects/mmdet3d_plugin/datasets/nuscenes_dataset.py"
+    },
+    "sources": [
+      {
+        "path": "results/Baseline_Results_Summary.xlsx",
+        "sha256": "949da5528e79407b18d7a22668300432be5203dc33de8f7f8cb46ee8b1e3e2cb",
+        "role": "Local baseline training curve and best-checkpoint metrics"
+      },
+      {
+        "path": "results/Enc_Dec_Results_Summary.xlsx",
+        "sha256": "f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5",
+        "role": "Fusion training curve and best-checkpoint metrics"
+      },
+      {
+        "path": "results/EncoderFusion_Results_SHS.xlsx",
+        "sha256": "f012b351b3218984faffb5f9a954eec4dde386bbe15dffe94cd5b405063bd7a5",
+        "role": "Duplicate fusion workbook",
+        "note": "Byte-identical to results/Enc_Dec_Results_Summary.xlsx and excluded from separate publication rows."
+      }
+    ],
+    "notes": [
+      "The published accuracy tables below are derived only from repository-tracked workbooks.",
+      "The repository does not contain a runtime profiling artifact for FPS, memory, or a dedicated 12GB GPU evaluation table.",
+      "Two fusion workbooks are byte-identical and are treated as one fused experiment unless new evidence appears."
+    ]
+  },
+  "curves": {
+    "baseline": [
+      {
+        "iters": 10000,
+        "mAP": 0.0925,
+        "mATE": 1.1162,
+        "mASE": 0.7273,
+        "mAOE": 1.2415,
+        "mAVE": 1.1255,
+        "mAAE": 0.3987,
+        "NDS": 0.1336
+      },
+      {
+        "iters": 20000,
+        "mAP": 0.147,
+        "mATE": 1.015,
+        "mASE": 0.7271,
+        "mAOE": 1.0189,
+        "mAVE": 1.2113,
+        "mAAE": 0.4265,
+        "NDS": 0.1582
+      },
+      {
+        "iters": 30000,
+        "mAP": 0.1552,
+        "mATE": 1.0017,
+        "mASE": 0.7275,
+        "mAOE": 0.9718,
+        "mAVE": 1.2108,
+        "mAAE": 0.4157,
+        "NDS": 0.1661
+      },
+      {
+        "iters": 40000,
+        "mAP": 0.173,
+        "mATE": 1.006,
+        "mASE": 0.7237,
+        "mAOE": 0.9187,
+        "mAVE": 1.2434,
+        "mAAE": 0.4076,
+        "NDS": 0.1815
+      },
+      {
+        "iters": 50000,
+        "mAP": 0.1824,
+        "mATE": 0.9909,
+        "mASE": 0.7227,
+        "mAOE": 0.9784,
+        "mAVE": 1.1701,
+        "mAAE": 0.3611,
+        "NDS": 0.1859
+      },
+      {
+        "iters": 60000,
+        "mAP": 0.1869,
+        "mATE": 1.0138,
+        "mASE": 0.7188,
+        "mAOE": 0.9268,
+        "mAVE": 1.1669,
+        "mAAE": 0.3771,
+        "NDS": 0.1912
+      },
+      {
+        "iters": 70000,
+        "mAP": 0.2019,
+        "mATE": 0.9491,
+        "mASE": 0.7193,
+        "mAOE": 0.8435,
+        "mAVE": 1.0882,
+        "mAAE": 0.3443,
+        "NDS": 0.2153
+      },
+      {
+        "iters": 80000,
+        "mAP": 0.1915,
+        "mATE": 0.9632,
+        "mASE": 0.7187,
+        "mAOE": 0.7844,
+        "mAVE": 1.0605,
+        "mAAE": 0.3391,
+        "NDS": 0.2152
+      },
+      {
+        "iters": 90000,
+        "mAP": 0.1973,
+        "mATE": 0.9535,
+        "mASE": 0.7153,
+        "mAOE": 0.7891,
+        "mAVE": 1.0675,
+        "mAAE": 0.3435,
+        "NDS": 0.2185
+      },
+      {
+        "iters": 100000,
+        "mAP": 0.2011,
+        "mATE": 0.949,
+        "mASE": 0.7161,
+        "mAOE": 0.815,
+        "mAVE": 1.0415,
+        "mAAE": 0.3333,
+        "NDS": 0.2192
+      }
+    ],
+    "fusion_encoder_decoder": [
+      {
+        "iters": 20000,
+        "mAP": 0.0898,
+        "mATE": 1.0949,
+        "mASE": 0.7404,
+        "mAOE": 1.1403,
+        "mAVE": 1.2492,
+        "mAAE": 0.4001,
+        "NDS": 0.1308
+      },
+      {
+        "iters": 40000,
+        "mAP": 0.1271,
+        "mATE": 1.0232,
+        "mASE": 0.7213,
+        "mAOE": 1.0656,
+        "mAVE": 1.1028,
+        "mAAE": 0.3219,
+        "NDS": 0.1592
+      },
+      {
+        "iters": 60000,
+        "mAP": 0.1785,
+        "mATE": 0.9835,
+        "mASE": 0.7273,
+        "mAOE": 1.0142,
+        "mAVE": 1.1361,
+        "mAAE": 0.2845,
+        "NDS": 0.1897
+      },
+      {
+        "iters": 80000,
+        "mAP": 0.2066,
+        "mATE": 0.9197,
+        "mASE": 0.7191,
+        "mAOE": 0.8671,
+        "mAVE": 1.0771,
+        "mAAE": 0.3112,
+        "NDS": 0.2216
+      },
+      {
+        "iters": 100000,
+        "mAP": 0.2507,
+        "mATE": 0.8697,
+        "mASE": 0.7174,
+        "mAOE": 0.8241,
+        "mAVE": 1.1375,
+        "mAAE": 0.2963,
+        "NDS": 0.2546
+      }
+    ]
+  },
+  "published_models": [
+    {
+      "id": "baseline",
+      "label": "Local BEVFormer baseline",
+      "config": "projects/configs/bevformer/bevformer_base.py",
+      "best_iter": 100000,
+      "mAP": 0.2011,
+      "NDS": 0.2192,
+      "fps": null,
+      "memory_gb": null,
+      "source": "results/Baseline_Results_Summary.xlsx"
+    },
+    {
+      "id": "fusion",
+      "label": "BEVFormerFusion",
+      "config": "projects/configs/bevformer/bevformer_project.py",
+      "best_iter": 100000,
+      "mAP": 0.2507,
+      "NDS": 0.2546,
+      "fps": null,
+      "memory_gb": null,
+      "source": "results/Enc_Dec_Results_Summary.xlsx"
+    }
+  ],
+  "derived_findings": {
+    "fusion_vs_baseline": {
+      "best_iter": 100000,
+      "mAP_gain_abs": 0.0496,
+      "NDS_gain_abs": 0.0354,
+      "baseline_mATE": 0.949,
+      "fusion_mATE": 0.8697,
+      "baseline_mAAE": 0.3333,
+      "fusion_mAAE": 0.2963
+    }
+  },
+  "twelve_gb_profile": {
+    "status": "pending",
+    "rows": [
+      {
+        "setting": "BEVFormerFusion on a 12GB GPU",
+        "memory_gb": null,
+        "fps": null,
+        "mAP": null,
+        "NDS": null,
+        "notes": "Pending a fresh 12GB profiling run. No repo-tracked runtime artifact is available for this table."
+      }
+    ]
+  }
+}
