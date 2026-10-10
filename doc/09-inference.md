@@ -72,7 +72,7 @@ graph LR
 Simple replacement: the velocity head's output directly overwrites the regression branch's velocity slots:
 
 ```
-bbox_preds[..., 8:10] = vel_preds    # (vx, vy) from camera-only BEV head
+bbox_preds[..., 8:10] = vel_preds    # (vx, vy) from pre-decoder-fusion BEV head
 ```
 
 ---

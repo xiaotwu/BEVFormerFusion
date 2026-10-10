@@ -29,7 +29,7 @@ BEVFormer is a transformer-based framework that constructs a unified Bird's-Eye-
 
 **Decoder-side fusion.** After the encoder produces the BEV embedding, a separate copy of the LiDAR BEV features is concatenated channel-wise with the encoder output. A linear projection compresses the fused representation back to the model dimension, giving the decoder's object queries access to a combined camera-LiDAR scene summary.
 
-**Velocity head.** A dedicated prediction head estimates per-object velocity by cross-attending decoder queries to a *camera-only* clone of the BEV embedding --- one that has not been mixed with LiDAR. This preserves the temporal signal inherent in consecutive camera frames, which is essential for motion estimation and would be diluted by the single-frame LiDAR features.
+**Velocity head.** A dedicated prediction head estimates per-object velocity by attending to the encoder BEV snapshot before decoder-side fusion. In Enc_Dec, this snapshot already contains encoder-side LiDAR features. The separate context is intended to retain temporal cues, but does not eliminate LiDAR influence or guarantee improved velocity accuracy.
 
 ---
 
@@ -77,7 +77,7 @@ graph TD
 
     %% ── BEV Split ──────────────────────────────────────────
     FFN_E --> BEV_OUT["Encoder BEV Output"]
-    BEV_OUT --> CLONE_CAM["Clone: Camera-Only BEV"]
+    BEV_OUT --> CLONE_CAM["Clone: Pre-Decoder-Fusion BEV"]
     BEV_OUT --> CONCAT["Concat + Linear<br/>(Decoder-Side Fusion)"]
     LBEV --> CONCAT
 
@@ -109,7 +109,7 @@ graph TD
     FFN_D --> YAW_RES
     FFN_D --> VEL
 
-    %% ── Velocity cross-attention to camera-only BEV ────────
+    %% ── Velocity cross-attention to pre-decoder-fusion BEV ────────
     CLONE_CAM -->|"cross-attn<br/>(temporal signal)"| VEL
 
     %% ── Styles ──────────────────────────────────────────────
@@ -136,7 +136,7 @@ graph TD
 
 ### 3a. Encoder-Side Fusion
 
-Within each of the four encoder layers, spatial cross-attention is executed twice --- once against camera features and once against the LiDAR BEV map. A per-channel learnable weight blends the two results before they enter the feed-forward network.
+Within each of the four encoder layers, spatial cross-attention is executed twice --- once against camera features and once against the LiDAR BEV map. A per-layer scalar learnable weight blends the two results before they enter the feed-forward network.
 
 ```mermaid
 graph LR
@@ -191,16 +191,16 @@ graph LR
     class DEC dec
 ```
 
-### 3c. Velocity Head with Camera-Only BEV
+### 3c. Velocity Head with Pre-Decoder-Fusion BEV
 
-Velocity estimation relies on *temporal cues* --- the displacement of objects between consecutive frames. Because LiDAR BEV features capture only the current time step, mixing them into the velocity signal would dilute the frame-to-frame motion information carried by the camera branch. The velocity head therefore cross-attends exclusively to a camera-only clone of the BEV.
+Velocity estimation relies on *temporal cues* --- the displacement of objects between consecutive frames. Because LiDAR BEV features capture only the current time step, mixing them into the velocity signal would dilute the frame-to-frame motion information carried by the camera branch. The velocity head reads the encoder snapshot before decoder-side fusion; encoder-side LiDAR information remains present.
 
 ```mermaid
 graph TD
     ENC["Encoder BEV Output"]
 
     ENC --> FUSED["Fused BEV<br/>(camera + LiDAR)"]
-    ENC --> CLONE["Clone: Camera-Only BEV<br/>(temporal signal intact)"]
+    ENC --> CLONE["Clone: Pre-Decoder-Fusion BEV<br/>(includes encoder LiDAR)"]
 
     FUSED --> DEC_Q["Decoder Queries"]
 
@@ -229,7 +229,7 @@ Encoder-side fusion operates at *fine granularity*: every BEV grid cell receives
 
 ### Temporal Signal Preservation
 
-BEVFormer's temporal self-attention aligns the current BEV with the previous frame's BEV, encoding object motion implicitly. LiDAR features, captured at a single time step, contain no such inter-frame signal. By routing the velocity head to a camera-only BEV clone, the architecture ensures that temporal displacement information remains undiluted.
+BEVFormer's temporal self-attention aligns the current BEV with the previous frame's BEV, encoding object motion implicitly. LiDAR features, captured at a single time step, contain no such inter-frame signal. The snapshot avoids the extra decoder-side injection, but encoder-side LiDAR still affects this context. The recorded Enc_Dec velocity error is higher than the baseline.
 
 ### Gradient Isolation
 
@@ -249,7 +249,7 @@ Yaw angle is decomposed into a classification bin and a regression residual, eac
 | **5** | Decoder-Side Fusion | Concatenation, linear projection, and how decoder queries consume fused BEV. |
 | **6** | Transformer Decoder | 6-layer decoder, reference point refinement, and object queries. |
 | **7** | Detection Heads | Classification, bbox regression, yaw (bin + residual), and velocity heads. |
-| **7a** | Velocity Head | Dedicated velocity prediction via camera-only BEV cross-attention. |
+| **7a** | Velocity Head | Dedicated velocity prediction via pre-decoder-fusion BEV cross-attention. |
 | **8** | Loss & Training | Per-head losses, weighting strategy, Hungarian matching, and training config. |
 | **9** | Inference | NMS-free decoding, temporal test-time processing, and post-processing. |
 | **A** | Tensor Shapes | Reference table of key tensor dimensions at every stage. |

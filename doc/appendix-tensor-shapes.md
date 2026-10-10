@@ -68,7 +68,7 @@ Complete tensor shape reference through the full pipeline. Shapes assume `B=1, b
 
 | Tensor | Shape | Description |
 |--------|-------|-------------|
-| `bev_embed_cam` | `(B, 10000, 256)` | Cloned before LiDAR fusion (for velocity head) |
+| `bev_embed_cam` | `(B, 10000, 256)` | Cloned before decoder-side LiDAR fusion (for velocity head) |
 | `bev_lidar_tok` (decoder) | `(B, 10000, 256)` | Projected + normalized LiDAR tokens |
 | Concatenated | `(B, 10000, 512)` | [camera BEV, LiDAR tokens] |
 | Fused `bev_embed` | `(B, 10000, 256)` | After Linear(512, 256) + LayerNorm |
@@ -97,7 +97,7 @@ Complete tensor shape reference through the full pipeline. Shapes assume `B=1, b
 | `all_yaw_bin_logits` | `(6, B, 450, 24)` | Yaw bin logits per layer |
 | `all_yaw_res_preds` | `(6, B, 450, 2)` | Yaw (sin, cos) residual per layer |
 | `all_vel_preds` | `(6, B, 450, 2)` | Velocity (vx, vy) per layer |
-| Velocity context | `(B, 450, 256)` | After cross-attention to camera-only BEV |
+| Velocity context | `(B, 450, 256)` | After cross-attention to pre-decoder-fusion BEV |
 
 ---
 

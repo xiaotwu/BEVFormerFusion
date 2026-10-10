@@ -162,11 +162,11 @@ This happens before denormalization, so the velocity values pass through the sam
 
 ---
 
-## 7. What "Camera-Only BEV" Actually Contains
+## 7. What the Pre-Decoder-Fusion Snapshot Contains
 
-The BEV snapshot is called "camera-only" in the codebase, but this is relative to decoder-side fusion only. In reality, the snapshot has already passed through:
+The variable `bev_embed_cam` is captured before decoder-side fusion. In Enc_Dec it is not camera-only. In reality, the snapshot has already passed through:
 
-1. **4 encoder layers** of dual SCA with encoder-side LiDAR blending (where the model learned ~60-74% LiDAR influence)
+1. **4 encoder layers** of dual SCA with encoder-side LiDAR blending
 2. **4 rounds of TSA** comparing current and previous BEV frames
 
 So the snapshot contains both camera and encoder-side LiDAR information, plus the temporal motion signal. What it does **not** contain is the decoder-side concat fusion --- the direct, high-bandwidth LiDAR injection that would dominate the representation.

@@ -18,7 +18,7 @@ Training combines five loss functions with Hungarian matching, auxiliary decoder
 | `loss_bbox` | L1 Loss | 0.25 | Positive queries | 10-dim bbox regression (yaw & velocity zeroed) |
 | `loss_yaw_bin` | Cross Entropy | 0.2 | Positive queries | 24-bin yaw classification |
 | `loss_yaw_res` | Smooth L1 | 0.2 | Positive queries | (sin, cos) residual regression |
-| `loss_vel` | Smooth L1 | 0.25 | Positive queries | (vx, vy) from camera-only velocity head |
+| `loss_vel` | Smooth L1 | 0.25 | Positive queries | (vx, vy) from pre-decoder-fusion velocity head |
 
 ---
 
@@ -71,7 +71,7 @@ bbox_weights[:, 8] = 0.0   # vx -- velocity head only
 bbox_weights[:, 9] = 0.0   # vy -- velocity head only
 ```
 
-This ensures that yaw is exclusively supervised through the bin + residual heads, and velocity is exclusively supervised through the camera-only cross-attention head.
+This ensures that yaw is exclusively supervised through the bin + residual heads, and velocity is exclusively supervised through the pre-decoder-fusion cross-attention head.
 
 ---
 

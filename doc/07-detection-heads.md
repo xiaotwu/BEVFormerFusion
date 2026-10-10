@@ -6,7 +6,7 @@
 
 ## Overview
 
-Each decoder layer produces a set of predictions through 5 parallel heads. Three of these are novel additions to BEVFormer: the yaw bin/residual heads and the velocity head with camera-only cross-attention.
+Each decoder layer produces a set of predictions through 5 parallel heads. Three of these are novel additions to BEVFormer: the yaw bin/residual heads and the velocity head with pre-decoder-fusion cross-attention.
 
 ---
 
@@ -22,7 +22,7 @@ graph TD
     DEC --> YAW_R["Yaw Residual Head<br/>MLP → (sin, cos)"]
 
     DEC --> VEL_CA["Velocity Cross-Attention"]
-    CAM_BEV["Camera-Only BEV<br/>(no LiDAR fusion)"] --> VEL_CA
+    CAM_BEV["Pre-Decoder-Fusion BEV<br/>(no LiDAR fusion)"] --> VEL_CA
     VEL_CA --> VEL["Velocity Head<br/>MLP → (vx, vy)"]
 
     CLS --> OUT["Final Predictions"]
@@ -126,7 +126,7 @@ The velocity head estimates per-object velocity by cross-attending decoder queri
 ```mermaid
 graph TD
     DQ["Decoder Query"]
-    CAM["Camera-Only BEV<br/>(cloned before LiDAR fusion)"]
+    CAM["Pre-Decoder-Fusion BEV<br/>(cloned before decoder-side fusion)"]
 
     DQ -->|"Q"| MHA["Multi-Head Attention<br/>8 heads"]
     CAM -->|"K, V"| MHA
@@ -182,7 +182,7 @@ graph TD
     class R6,R7,R8,R9 zeroed
 ```
 
-By zeroing `bbox_weights` at indices 6-9, the regression head receives no gradient for yaw or velocity. All yaw learning flows through the bin + residual heads, and all velocity learning flows through the camera-only cross-attention head.
+By zeroing `bbox_weights` at indices 6-9, the regression head receives no gradient for yaw or velocity. All yaw learning flows through the bin + residual heads, and all velocity learning flows through the pre-decoder-fusion cross-attention head.
 
 ---
 

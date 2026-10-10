@@ -1,0 +1,155 @@
+{
+  "source": {
+    "path": "reports/From Pillars to Transformers: Two Fusion Paradigms Based on PointPillars for 3D Object Detection.pdf",
+    "sha256": "e96622865740a785bea6613cac5a80dd1647fefae2f6abf1d99fabf7ed686d3e",
+    "title": "From Pillars to Transformers: Two Fusion Paradigms Based on PointPillars for 3D Object Detection",
+    "date": "April 2026",
+    "sections": [
+      "4.2",
+      "7.2"
+    ],
+    "tables": [
+      5,
+      6,
+      7
+    ]
+  },
+  "protocol": {
+    "dataset": "nuScenes validation",
+    "checkpoint_selection": "best validation NDS",
+    "precision": "FP32",
+    "batch_size_per_gpu": 1,
+    "hardware": {
+      "gpu": "NVIDIA GeForce RTX 3060",
+      "gpu_memory_gb": 12,
+      "cpu": "Intel Core i5-10400 (2.90 GHz)",
+      "ram_gb": 32
+    },
+    "latency_samples_per_variant": 200
+  },
+  "table_5": [
+    {
+      "variant": "Baseline (camera-only)",
+      "checkpoint_iter": 100000,
+      "mAP": 0.201,
+      "NDS": 0.219,
+      "mATE": 0.949,
+      "mASE": 0.716,
+      "mAOE": 0.815,
+      "mAVE": 1.042,
+      "mAAE": 0.333
+    },
+    {
+      "variant": "Enc_Dec",
+      "checkpoint_iter": 100000,
+      "mAP": 0.251,
+      "NDS": 0.255,
+      "mATE": 0.87,
+      "mASE": 0.717,
+      "mAOE": 0.824,
+      "mAVE": 1.138,
+      "mAAE": 0.296
+    },
+    {
+      "variant": "Decoder (V3)",
+      "checkpoint_iter": 90000,
+      "mAP": 0.202,
+      "NDS": 0.214,
+      "mATE": 0.872,
+      "mASE": 0.72,
+      "mAOE": 0.857,
+      "mAVE": 1.139,
+      "mAAE": 0.424
+    }
+  ],
+  "table_7": [
+    {
+      "variant": "Baseline (camera-only)",
+      "samples": 200,
+      "latency_seconds": 0.2593,
+      "latency_ms": 259.32,
+      "fps": 3.86
+    },
+    {
+      "variant": "Enc_Dec",
+      "samples": 200,
+      "latency_seconds": 0.4315,
+      "latency_ms": 431.47,
+      "fps": 2.32
+    },
+    {
+      "variant": "Decoder (V3)",
+      "samples": 200,
+      "latency_seconds": 0.2693,
+      "latency_ms": 269.31,
+      "fps": 3.71
+    }
+  ],
+  "notes": [
+    "Table 5 retains the report precision (three decimals); four-decimal baseline and Enc_Dec values are in metrics.json.",
+    "Raw benchmark logs, checkpoints, and exact baseline/V3 experiment configs are not included.",
+    "Section 4.2.1 mentions repeated runs within 2%, while Section 7.2 calls the results single-run. No seed-level records or uncertainty estimates are available."
+  ],
+  "table_6": [
+    {
+      "class": "car",
+      "baseline_AP": 0.359,
+      "enc_dec_AP": 0.424,
+      "delta": 0.065
+    },
+    {
+      "class": "truck",
+      "baseline_AP": 0.09,
+      "enc_dec_AP": 0.152,
+      "delta": 0.062
+    },
+    {
+      "class": "bus",
+      "baseline_AP": 0.161,
+      "enc_dec_AP": 0.314,
+      "delta": 0.153
+    },
+    {
+      "class": "trailer",
+      "baseline_AP": 0.019,
+      "enc_dec_AP": 0.046,
+      "delta": 0.027
+    },
+    {
+      "class": "construction_vehicle",
+      "baseline_AP": 0.068,
+      "enc_dec_AP": 0.068,
+      "delta": 0.0
+    },
+    {
+      "class": "pedestrian",
+      "baseline_AP": 0.289,
+      "enc_dec_AP": 0.339,
+      "delta": 0.05
+    },
+    {
+      "class": "motorcycle",
+      "baseline_AP": 0.203,
+      "enc_dec_AP": 0.24,
+      "delta": 0.037
+    },
+    {
+      "class": "bicycle",
+      "baseline_AP": 0.196,
+      "enc_dec_AP": 0.198,
+      "delta": 0.002
+    },
+    {
+      "class": "traffic_cone",
+      "baseline_AP": 0.367,
+      "enc_dec_AP": 0.385,
+      "delta": 0.018
+    },
+    {
+      "class": "barrier",
+      "baseline_AP": 0.261,
+      "enc_dec_AP": 0.343,
+      "delta": 0.082
+    }
+  ]
+}

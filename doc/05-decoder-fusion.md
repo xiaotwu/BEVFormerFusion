@@ -35,7 +35,7 @@ The following diagram traces the full decoder-side fusion pipeline, from encoder
 graph TD
     ENC_OUT["Encoder Output<br/>(bev_embed)"]
 
-    subgraph CamPreserve["Camera-Only BEV Preservation"]
+    subgraph CamPreserve["Pre-Decoder-Fusion BEV Preservation"]
         direction TB
         CLONE["bev_embed.clone()"]
         CAM_BEV["bev_embed_cam<br/>(saved for velocity head)"]
@@ -76,13 +76,13 @@ graph TD
     class DECODER,VEL dec
 ```
 
-The clone step is critical: `bev_embed_cam` captures the BEV **before** any decoder-side LiDAR mixing. The velocity head cross-attends to this camera-only copy to preserve the temporal motion signal that would otherwise be diluted by single-frame LiDAR features. See [Chapter 7a -- Velocity Head](07a-velocity-head.md) for the full architecture.
+The clone step is critical: `bev_embed_cam` captures the BEV **before** any decoder-side LiDAR mixing. The velocity head cross-attends to this pre-decoder-fusion copy to avoid the additional decoder-side LiDAR injection. In Enc_Dec, encoder-side LiDAR features remain present; improved motion accuracy is not established by the recorded results. See [Chapter 7a -- Velocity Head](07a-velocity-head.md) for the full architecture.
 
 ---
 
 ## 3. Identity Initialization
 
-The fusion linear layer (`lidar_fuse_linear`) maps from 2C dimensions back to C. A naive random initialization would immediately inject noisy LiDAR features into a pipeline that was producing reasonable camera-only BEV representations, destabilizing early training. The solution is **identity initialization**.
+The fusion linear layer (`lidar_fuse_linear`) maps from 2C dimensions back to C. A naive random initialization would immediately inject noisy LiDAR features into a pipeline that was producing reasonable pre-decoder-fusion BEV representations, destabilizing early training. The solution is **identity initialization**.
 
 ```mermaid
 graph TD
@@ -125,7 +125,7 @@ self.lidar_fuse_linear.weight[:, :C] = torch.eye(C)  # camera half = identity
 # lidar half (columns C..2C-1) remains zero
 ```
 
-At initialization, the linear layer is a **pure passthrough** for camera features. The bias is also zeroed. This means the network begins training as if no decoder-side fusion exists at all --- identical to the camera-only baseline. As gradients flow during training, the right half of the weight matrix gradually develops nonzero values, and the network learns exactly how much LiDAR information to incorporate and in what combination.
+At initialization, the linear layer is a **pure passthrough** for encoder features. The bias is also zeroed. This means the network begins training as if no decoder-side fusion exists at all --- with no direct LiDAR contribution through this linear block (encoder-side fusion and subsequent normalization still apply). As gradients flow during training, the right half of the weight matrix gradually develops nonzero values, and the network learns exactly how much LiDAR information to incorporate and in what combination.
 
 This design pattern is sometimes called a "residual gate" or "zero init shortcut." It is especially important here because the encoder output is already a mature, high-quality representation. Disrupting it with random LiDAR noise at the start of training would waste optimization steps recovering lost performance.
 
@@ -214,7 +214,7 @@ Together, the two stages give the model access to LiDAR information at two level
 | `projects/mmdet3d_plugin/bevformer/modules/transformer.py` | 53--62 | `fusion_mode` parameter and validation |
 | `projects/mmdet3d_plugin/bevformer/modules/transformer.py` | 94--97 | Module definitions: `lidar_proj`, `lidar_fuse_linear`, `lidar_fuse_norm` |
 | `projects/mmdet3d_plugin/bevformer/modules/transformer.py` | 160--177 | `init_weights()` --- identity initialization for the fusion linear layer |
-| `projects/mmdet3d_plugin/bevformer/modules/transformer.py` | 346 | `bev_embed_cam = bev_embed.clone()` --- camera-only snapshot before fusion |
+| `projects/mmdet3d_plugin/bevformer/modules/transformer.py` | 346 | `bev_embed_cam = bev_embed.clone()` --- BEV snapshot before decoder-side fusion |
 | `projects/mmdet3d_plugin/bevformer/modules/transformer.py` | 349--364 | Forward pass: LiDAR projection, LayerNorm, alpha scaling, concat, linear fusion |
 
 ---
